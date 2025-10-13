@@ -6,7 +6,10 @@ from .api_client import (
     api_get_inference_status,
     api_list_inferences
 )
-from .utils import get_csghub_api_endpoint, get_csghub_api_key
+from .utils import (
+    get_csghub_api_endpoint, 
+    get_csghub_api_key
+)
 
 logger = logging.getLogger(__name__)
 
