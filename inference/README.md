@@ -30,7 +30,7 @@ uv pip install .
 
 ```bash
 # Run by command
-csghub-mcp-server
+csghub-mcp-server-inference
 
 # Run locally
 python app.py
