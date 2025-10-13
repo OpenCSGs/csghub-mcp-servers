@@ -1,7 +1,7 @@
 import sys
 import os
 
-from src.csghub_mcp_server.main import app
+from src.csghub_mcp_server_model.main import app
 
 if __name__ == "__main__":
     # streamable-http
