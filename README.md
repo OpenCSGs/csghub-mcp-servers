@@ -2,7 +2,7 @@
 
 ## Overview
 
-CSGHub MCP (Model Control Panel) Servers is a specialized service component designed to provide model control tools for the CSGHub server ecosystem. This project serves as a bridge between CSGHub's core functionality and advanced management capabilities, enabling efficient control and operation of AI models within the CSGHub platform.
+CSGHub MCP (Model Control Panel) Servers is a specialized service component designed to provide model/inference/finetune/evaluation/space/dataset/code control tools for the CSGHub server ecosystem. This project serves as a bridge between CSGHub's core functionality and advanced management capabilities, enabling efficient control and operation of AI models within the CSGHub platform.
 
 ## Features
 
@@ -16,42 +16,3 @@ CSGHub MCP (Model Control Panel) Servers is a specialized service component desi
 
 - Python 3.10 or higher
 - CSGHub Server environment
-
-## Installation
-
-### Create a Virtual Environment
-
-```bash
-uv venv --python 3.10
-
-source .venv/bin/activate
-```
-
-### From Source
-
-Clone the repository and install the package:
-
-```bash
-git clone https://jihulab.com/opencsg/csghub-mcp-servers.git
-cd csghub-mcp-server/model
-
-uv pip install .
-```
-
-### Run the Server
-
-```bash
-# Run by command
-csghub-mcp-server
-
-# Run by uv
-uv run src/csghub_mcp_server/main.py
-```
-
-### Add dependencies
-
-```bash
-uv add requests mcp
-
-uv pip install mcp
-```
