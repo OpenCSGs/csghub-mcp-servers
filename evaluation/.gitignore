@@ -1,0 +1,72 @@
+# Python build file
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+uv.lock
+
+# env
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# build and distribute
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE 
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+.spyderproject
+.spyproject
+.ropeproject
+
+# test and usage report
+.coverage
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.pytest_cache/
+cover/
+.coverage.*
+coverage.xml
+*.cover
+
+# log and temp files
+*.log
+logs/
+log/
+tmp/
+temp/
+
+# project file
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
