@@ -21,7 +21,7 @@ Clone the repository and install the package:
 
 ```bash
 git clone https://github.com/OpenCSGs/csghub-mcp-servers.git
-cd csghub-mcp-servers/inference
+cd csghub-mcp-servers/finetune
 
 uv pip install .
 ```
@@ -30,7 +30,7 @@ uv pip install .
 
 ```bash
 # Run by command
-csghub-mcp-server
+csghub-mcp-server-finetune
 
 # Run locally
 python app.py
