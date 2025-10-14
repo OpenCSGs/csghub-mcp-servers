@@ -6,7 +6,9 @@ from .api_client import (
     api_get_username_from_token,
     api_get_top_download_spaces,
     create_space,
-    run_space
+    run_space,
+    get_space_resources,
+    get_clusters
 )
 from .utils import (
     get_csghub_api_endpoint, 
@@ -19,6 +21,7 @@ def register_space_tools(mcp_instance: FastMCP):
     register_create_tools(mcp_instance)
     register_run_tool(mcp_instance)
     register_upload_tool(mcp_instance)
+    register_query_resource_tool(mcp_instance)
 
 def register_create_tools(mcp_instance: FastMCP):
 
@@ -189,3 +192,56 @@ def register_run_tool(mcp_instance: FastMCP):
         except Exception as e:
             logger.error(f"Error calling run space API: {e}")
             return f"Error: Failed to run space. {e}"
+
+def register_query_resource_tool(mcp_instance: FastMCP):
+
+    @mcp_instance.tool(
+        name="get_space_resource",
+        title="Get available space resources",
+        description="Get available space resources. Parameters: `token` (str, required): User's API token. `cluster_id` (str, optional): ID of the cluster. If not provided, the first available cluster will be used.",
+        structured_output=True,
+    )
+    def get_space_resource(
+        token: str,
+        cluster_id: str = ""
+    ) -> str:
+        """
+        Get available space resources.
+
+        Args:
+            token: User's API token.
+            cluster_id: ID of the cluster.
+        """
+        api_url = get_csghub_api_endpoint()
+        api_key = get_csghub_api_key()
+
+        if not token:
+            return "Error: The 'token' parameter is required."
+
+        try:
+            # Verifying token is valid
+            api_get_username_from_token(api_url, api_key, token)
+        except Exception as e:
+            logger.error(f"Error calling user token API: {e}")
+            return f"Error: Failed to get username. {e}"
+
+        try:
+            final_cluster_id = cluster_id
+            if not final_cluster_id:
+                clusters_resp = get_clusters(api_url=api_url, token=token)
+                clusters = clusters_resp.get('data', [])
+                if clusters and len(clusters) > 0:
+                    final_cluster_id = clusters[0].get('id')
+                else:
+                    return "Error: No available clusters found."
+
+            resp = get_space_resources(
+                api_url=api_url,
+                token=token,
+                cluster_id=final_cluster_id,
+                deploy_type=0
+            )
+            return json.dumps(resp)
+        except Exception as e:
+            logger.error(f"Error calling get space resource API: {e}")
+            return f"Error: Failed to get space resource. {e}"
