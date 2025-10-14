@@ -4,7 +4,8 @@ import json
 from .api_client import (
     api_get_username_from_token,
     api_list_codes,
-    api_get_code_details
+    api_get_code_details,
+    api_create_code,
 )
 from .utils import (
     get_csghub_api_endpoint, 
@@ -16,6 +17,7 @@ logger = logging.getLogger(__name__)
 def register_code_tools(mcp_instance: FastMCP):
     register_code_list(mcp_instance=mcp_instance)
     register_code_query(mcp_instance=mcp_instance)
+    register_code_creation(mcp_instance=mcp_instance)
 
 def register_code_list(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -57,3 +59,38 @@ def register_code_query(mcp_instance: FastMCP):
         api_url = get_csghub_api_endpoint()
         json_data = api_get_code_details(api_url=api_url, token=token, code_path=code_path)
         return json.dumps({"data": json_data["data"]})
+
+def register_code_creation(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="create_code",
+        title="Create a new code repo in CSGHub with specified code name",
+        description="Create a new code repo in CSGHub with user access token. This is useful for submitting a new code repo to the CSGHub service. code_name is required and must be must start with a letter, can only contain letters, numbers and special characters underscores (_) and hyphens (-). license and readme and description are optional. Default license is Apache-2.0. Default readme and description is empty.",
+        structured_output=True,
+    )
+    def create_code(
+        token: str,
+        code_name: str, 
+        license: str = "apache-2.0",
+        readme: str = "",
+        description: str = "",
+    ) -> str:
+        api_key = get_csghub_api_key()
+        api_url = get_csghub_api_endpoint()
+
+        try:
+            username = api_get_username_from_token(api_url, api_key, token)
+        except Exception as e:
+            logger.error(f"Error calling user token API: {e}")
+            return f"Error: Failed to get username. {e}"
+
+        json_data = api_create_code(
+            api_url=api_url, 
+            token=token,
+            namespace=username,
+            code_name=code_name,
+            license=license,
+            readme=readme,
+            description=description,
+        )
+        return json.dumps({"data": json_data["data"]})
+
