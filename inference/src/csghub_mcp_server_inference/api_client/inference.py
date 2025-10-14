@@ -1,5 +1,6 @@
 import requests
 import logging
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,37 @@ def api_get_inference_status(api_url: str, token: str, model_id: str, deploy_id:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get inferences status on {url}: {response.text}")
+
+    response.raise_for_status()
+    return response.json()
+
+def api_inference_create(
+    api_url: str,
+    token: str,
+    model_id: str,
+    cluster_id: str,
+    runtime_framework_id: int,
+    resource_id: int,
+):
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{api_url}/api/v1/models/{model_id}/run"
+    random_num = f"{random.randint(0, 9999):04d}"
+    json_data = {
+        "cluster_id": cluster_id,
+        "runtime_framework_id": runtime_framework_id,
+         "resource_id": resource_id,
+        "cost_per_hour": 0,
+        "deploy_name": f"deploy_{random_num}",
+        "env": "",
+        "hardware": "",
+        "max_replica": 1,
+        "min_replica": 1,
+        "revision": "main",
+        "secure_level": 1,
+    }
+    response = requests.post(url, headers=headers, json=json_data)
+    if response.status_code != 200:
+        logger.error(f"failed to create model inference on {url}: {response.text}")
 
     response.raise_for_status()
     return response.json()
