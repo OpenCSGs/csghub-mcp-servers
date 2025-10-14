@@ -1,4 +1,4 @@
-# CSGHub Model MCP Tools
+# CSGHub Space MCP Tools
 
 ## Requirements
 

@@ -1,7 +1,7 @@
 [project]
 name = "csghub-mcp-server-space"
 version = "0.1.0"
-description = "CSGHub MCP Server"
+description = "CSGHub Space MCP Server"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

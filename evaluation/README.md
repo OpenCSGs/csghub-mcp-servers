@@ -1,4 +1,4 @@
-# CSGHub Model MCP Tools
+# CSGHub Evaluation MCP Tools
 
 ## Requirements
 
