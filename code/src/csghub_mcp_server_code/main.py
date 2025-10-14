@@ -5,13 +5,13 @@ import logging
 from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 from .arguments import setup_argparse
-from .finetune import register_finetune_tools
+from .code import register_code_tools
 
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("CSGHub-Finetune-MCP-Server", host="0.0.0.0", port=8000, log_level="INFO")
+mcp = FastMCP("CSGHub-Code-MCP-Server", host="0.0.0.0", port=8000, log_level="INFO")
 
-register_finetune_tools(mcp)
+register_code_tools(mcp)
 
 def signal_handler(sig, frame):
     logger.info("cleaning resource")
@@ -38,7 +38,7 @@ def app(host: str = "0.0.0.0", port: int = 8000, protocol: str = 'streamable-htt
     try:
         mcp.settings.host = host
         mcp.settings.port = port
-        logger.info(f"Starting Finetune MCP server on {host}:{port} with {protocol} protocol.")
+        logger.info(f"Starting code MCP server on {host}:{port} with {protocol} protocol.")
         mcp.run(transport=protocol)
     except KeyboardInterrupt:
         signal_handler(signal.SIGINT, None)

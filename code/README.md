@@ -1,4 +1,4 @@
-# CSGHub Inference MCP Tools
+# CSGHub Code MCP Tools
 
 ## Requirements
 
@@ -21,7 +21,7 @@ Clone the repository and install the package:
 
 ```bash
 git clone https://github.com/OpenCSGs/csghub-mcp-servers.git
-cd csghub-mcp-servers/inference
+cd csghub-mcp-servers/code
 
 uv pip install .
 ```
@@ -30,7 +30,7 @@ uv pip install .
 
 ```bash
 # Run by command
-csghub-mcp-server-inference
+csghub-mcp-server-code
 
 # Run locally
 python app.py
