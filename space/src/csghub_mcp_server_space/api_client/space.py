@@ -63,7 +63,6 @@ def create_space(
     token: str,
     name: str,
     namespace: str,
-    hardware: int,
     resource_id: int,
     cluster_id: str,
     sdk: str = "gradio",
@@ -80,7 +79,6 @@ def create_space(
         token: User's token
         name: Name of the space
         namespace: Namespace of the user
-        hardware: Hardware required
         resource_id: Resource ID
         cluster_id: Cluster ID
         sdk: SDK for the space
@@ -103,7 +101,6 @@ def create_space(
         "namespace": namespace,
         "license": license,
         "sdk": sdk,
-        "hardware": hardware,
         "resource_id": resource_id,
         "cluster_id": cluster_id,
         "private": private,

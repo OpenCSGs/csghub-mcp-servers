@@ -5,11 +5,8 @@ import base64
 from .api_client import (
     api_get_username_from_token,
     api_get_top_download_spaces,
-    create_space,
-    run_space,
-    get_space_resources,
-    get_clusters
 )
+from .api_client import space, repo, space_resources, cluster
 from .utils import (
     get_csghub_api_endpoint, 
     get_csghub_api_key
@@ -28,13 +25,12 @@ def register_create_tools(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="create_space",
         title="Create a new CSGHub space",
-        description="Create a new CSGHub space. Parameters: `token` (str, required): User's API token. `name` (str, required): Name of the space. `hardware` (int, required): Hardware required. `resource_id` (int, required): Resource ID for the hardware. `cluster_id` (str, required): ID of the cluster to deploy to. `sdk` (str, optional, default: 'gradio'): SDK for the space. `license` (str, optional, default: 'apache-2.0'): License of the space. `private` (bool, optional, default: False): Whether the space is private. `order_detail_id` (int, optional): Order detail ID. `env` (str, optional): Environment variables. `secrets` (str, optional): Secrets for the space.",
+        description="Create a new CSGHub space. Parameters: `token` (str, required): User's API token. `name` (str, required): Name of the space. `resource_id` (int, required): Resource ID for the hardware. `cluster_id` (str, required): ID of the cluster to deploy to. `sdk` (str, optional, default: 'gradio'): SDK for the space. `license` (str, optional, default: 'apache-2.0'): License of the space. `private` (bool, optional, default: False): Whether the space is private. `order_detail_id` (int, optional): Order detail ID. `env` (str, optional): Environment variables. `secrets` (str, optional): Secrets for the space.",
         structured_output=True,
     )
     def create_space(
         token: str,
         name: str,
-        hardware: int,
         resource_id: int,
         cluster_id: str,
         sdk: str = "gradio",
@@ -51,7 +47,6 @@ def register_create_tools(mcp_instance: FastMCP):
             token: User's API token.
             name: Name of the space.
             namespace: Namespace of the user.
-            hardware: Hardware required.
             resource_id: Resource ID for the hardware.
             cluster_id: ID of the cluster to deploy to.
             sdk: SDK for the space (default: gradio).
@@ -71,12 +66,11 @@ def register_create_tools(mcp_instance: FastMCP):
             return f"Error: Failed to get username. {e}"
         
         try:
-            resp = create_space(
+            resp = space.create_space(
                 api_url=api_url,
                 token=token,
                 name=name,
                 namespace=username,
-                hardware=hardware,
                 resource_id=resource_id,
                 cluster_id=cluster_id,
                 sdk=sdk,
@@ -133,7 +127,7 @@ iface.launch()""",
 
         try:
             encoded_content = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
-            resp = upload_file(
+            resp = repo.upload_file(
                 api_url=api_url,
                 token=token,
                 namespace=username,
@@ -182,7 +176,7 @@ def register_run_tool(mcp_instance: FastMCP):
             return f"Error: Failed to get username. {e}"
 
         try:
-            resp = run_space(
+            resp = space.run_space(
                 api_url=api_url,
                 token=token,
                 namespace=username,
@@ -228,14 +222,14 @@ def register_query_resource_tool(mcp_instance: FastMCP):
         try:
             final_cluster_id = cluster_id
             if not final_cluster_id:
-                clusters_resp = get_clusters(api_url=api_url, token=token)
+                clusters_resp = cluster.get_clusters(api_url=api_url, token=token)
                 clusters = clusters_resp.get('data', [])
                 if clusters and len(clusters) > 0:
                     final_cluster_id = clusters[0].get('id')
                 else:
                     return "Error: No available clusters found."
 
-            resp = get_space_resources(
+            resp = space_resources.get_space_resources(
                 api_url=api_url,
                 token=token,
                 cluster_id=final_cluster_id,
