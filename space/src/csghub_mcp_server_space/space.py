@@ -24,15 +24,26 @@ def register_create_tools(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
         name="create_space",
-        title="Create a new CSGHub space",
-        description="Create a new CSGHub space. Parameters: `token` (str, required): User's API token. `name` (str, required): Name of the space. `resource_id` (int, required): Resource ID for the hardware. `cluster_id` (str, required): ID of the cluster to deploy to. `sdk` (str, optional, default: 'gradio'): SDK for the space. `license` (str, optional, default: 'apache-2.0'): License of the space. `private` (bool, optional, default: False): Whether the space is private. `order_detail_id` (int, optional): Order detail ID. `env` (str, optional): Environment variables. `secrets` (str, optional): Secrets for the space.",
+        title="Create and run a CSGHub space",
+        description="""Creates a new CSGHub space, uploads files, and attempts to start it.
+Parameters:
+- `token` (str, required): User's API token.
+- `name` (str, required): Name of the space.
+- `files` (list, optional): A list of file dictionaries to upload, each with 'name' and 'content'. If omitted, a default 'app.py' is created.
+- `cluster_id` (str, optional): Cluster ID for deployment. If omitted, the first available cluster is used.
+- `resource_id` (int, optional): Hardware resource ID. If omitted, the first available resource in the cluster is used.
+- `sdk` (str, optional, default: 'gradio'): The SDK to use.
+- `license` (str, optional, default: 'apache-2.0'): The space license.
+- `private` (bool, optional, default: False): Whether the space is private.
+The final response includes results for creation, uploads, and the run attempt.""",
         structured_output=True,
     )
     def create_space(
         token: str,
         name: str,
-        resource_id: int,
-        cluster_id: str,
+        files: list | None = None,
+        resource_id: int = 0,
+        cluster_id: str = "",
         sdk: str = "gradio",
         license: str = "apache-2.0",
         private: bool = False,
@@ -41,11 +52,12 @@ def register_create_tools(mcp_instance: FastMCP):
         secrets: str = ""
     ) -> str:
         """
-        Create a new CSGHub space.
+        Create a new CSGHub space, upload files, and run it.
         
         Args:
             token: User's API token.
             name: Name of the space.
+            files: A list of file dictionaries to upload.
             namespace: Namespace of the user.
             resource_id: Resource ID for the hardware.
             cluster_id: ID of the cluster to deploy to.
@@ -65,14 +77,45 @@ def register_create_tools(mcp_instance: FastMCP):
             logger.error(f"Error calling user token API: {e}")
             return f"Error: Failed to get username. {e}"
         
+        final_cluster_id = cluster_id
+        if not final_cluster_id:
+            try:
+                clusters_resp = cluster.get_clusters(api_url=api_url, token=token)
+                clusters = clusters_resp.get('data', [])
+                if clusters and len(clusters) > 0:
+                    final_cluster_id = clusters[0].get('cluster_id')
+                else:
+                    return "Error: No available clusters found."
+            except Exception as e:
+                logger.error(f"Failed to get cluster list: {e}")
+                return f"Error: Could not fetch the list of available clusters. {e}"
+
+        final_resource_id = resource_id
+        if not final_resource_id:
+            try:
+                resources_resp = space_resources.get_space_resources(
+                    api_url=api_url,
+                    token=token,
+                    cluster_id=final_cluster_id,
+                    deploy_type=0
+                )
+                resources = resources_resp.get('data', [])
+                if resources and len(resources) > 0:
+                    final_resource_id = resources[0].get('id')
+                else:
+                    return f"Error: No available resources found for cluster {final_cluster_id}."
+            except Exception as e:
+                logger.error(f"Failed to get resource list for cluster {final_cluster_id}: {e}")
+                return f"Error: Could not fetch resources for cluster {final_cluster_id}. {e}"
+
         try:
             resp = space.create_space(
                 api_url=api_url,
                 token=token,
                 name=name,
                 namespace=username,
-                resource_id=resource_id,
-                cluster_id=cluster_id,
+                resource_id=final_resource_id,
+                cluster_id=final_cluster_id,
                 sdk=sdk,
                 license=license,
                 private=private,
@@ -80,10 +123,64 @@ def register_create_tools(mcp_instance: FastMCP):
                 env=env,
                 secrets=secrets
             )
+
+            if 'data' in resp:
+                files_to_upload = files
+                if not files_to_upload:
+                    files_to_upload = [{
+                        'name': 'app.py',
+                        'content': '''import gradio as gr
+
+def greet(name):
+    return "Hello " + name + "!!"
+
+iface = gr.Interface(fn=greet, inputs="text", outputs="text")
+iface.launch()'''
+                        }]
+                    
+                upload_results = []
+                for file_info in files_to_upload:
+                    file_name = file_info.get('name')
+                    file_content = file_info.get('content')
+                    if not file_name or not file_content:
+                        upload_results.append({'error': f"Skipped invalid file entry: {file_info}"})
+                        continue
+
+                    try:
+                        encoded_content = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
+                        upload_resp = repo.upload_file(
+                            api_url=api_url,
+                            token=token,
+                            namespace=username,
+                            repo_name=name,
+                            file_path=file_name,
+                            content=encoded_content,
+                            repo_type="space",
+                            branch="main"
+                        )
+                        upload_results.append(upload_resp)
+                    except Exception as upload_e:
+                        upload_results.append({'error': f"Failed to upload {file_name}: {str(upload_e)}"})
+                    
+                resp['upload_results'] = upload_results
+
+                try:
+                    run_resp = space.run_space(
+                        api_url=api_url,
+                        token=token,
+                        namespace=username,
+                        space_name=name,
+                    )
+                    resp['run_result'] = run_resp
+                except Exception as run_e:
+                    logger.error(f"Failed to run space {name}: {run_e}")
+                    resp['run_result'] = {'error': f"Failed to run space: {str(run_e)}"}
+
             return json.dumps(resp)
         except Exception as e:
-            logger.error(f"Error calling create space API: {e}")
-            return f"Error: Failed to create space. {e}"
+            logger.error(f"Error during core transaction (create, upload, or run): {e}")
+            return f"Error: Failed during the core operation (create, upload, or run). {e}"
+
 
 def register_upload_tool(mcp_instance: FastMCP):
 
