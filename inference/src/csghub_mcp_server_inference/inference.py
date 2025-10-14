@@ -24,7 +24,7 @@ def register_inference_tools(mcp_instance: FastMCP):
     register_inference_query(mcp_instance=mcp_instance)
     register_check_model(mcp_instance=mcp_instance)
     register_deploy_model_inference(mcp_instance=mcp_instance)
-    query_available_resources_and_runtime_frameworks(mcp_instance=mcp_instance)
+    register_query_inference_conditions(mcp_instance=mcp_instance)
     
 def register_inference_list(mcp_instance: FastMCP):
 
@@ -82,7 +82,7 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="deploy_model_as_inference_by_model_id",
         title="Deploy model as inference service by model_id/runtime_framework_id/resource_id",
-        description="Retrieve and find model detail and check if model exists in CSGHub by a specific deploy ID from CSGHub with user access token. User have to provide model_id, runtime_framework_id, resource_id to deploy model as inference service.",
+        description="Deploy model as inference service by a specific model_id from CSGHub with user access token. User have to provide model_id, runtime_framework_id, resource_id to deploy model as inference service.",
         structured_output=True,
     )
     def deploy_model_as_inference_by_model_id(
@@ -103,14 +103,14 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
         )
         return json.dumps({"data": json_data["data"]})
 
-def query_available_resources_and_runtime_frameworks(mcp_instance: FastMCP):
+def register_query_inference_conditions(mcp_instance: FastMCP):
     @mcp_instance.tool(
-        name="query_available_resources_and_runtime_frameworks",
-        title="Query available resources and runtime frameworks for deploying models",
-        description="Retrieve a list of available resources and runtime frameworks that can be used for deploying models on CSGHub.",
+        name="query_available_resources_and_runtime_frameworks_for_inference",
+        title="Query available resources and runtime frameworks for deploying model as inference service",
+        description="Retrieve a list of available resources and runtime frameworks that can be used for deploying model as inference on CSGHub.",
         structured_output=True,
     )
-    def query_available_resources_and_runtime_frameworks(model_id: str) -> str:
+    def query_available_resources_and_runtime_frameworks_for_inference(model_id: str) -> str:
         api_url = get_csghub_api_endpoint()
         deploy_type = "1"
         res_json_data = api_get_available_resources(api_url, cluster_id, deploy_type)
