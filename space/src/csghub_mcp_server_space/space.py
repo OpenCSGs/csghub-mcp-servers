@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 
 def register_space_tools(mcp_instance: FastMCP):
     register_create_tools(mcp_instance)
-    register_run_tool(mcp_instance)
-    register_upload_tool(mcp_instance)
+    # register_run_tool(mcp_instance)
+    # register_upload_tool(mcp_instance)
     register_query_resource_tool(mcp_instance)
 
 def register_create_tools(mcp_instance: FastMCP):
