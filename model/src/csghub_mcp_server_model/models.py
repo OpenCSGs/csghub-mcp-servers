@@ -105,4 +105,6 @@ def register_model_creation(mcp_instance: FastMCP):
             readme=readme,
             description=description,
         )
-        return json.dumps({"data": json_data["data"]})
+        
+        access_url = f"https://opencsg.com/models/{username}/{model_name}"
+        return json.dumps({"data": json_data["data"], "access_url": access_url})
