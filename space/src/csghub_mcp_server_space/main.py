@@ -5,7 +5,6 @@ import logging
 from mcp.server.fastmcp import FastMCP
 from .arguments import setup_argparse
 from .space import register_space_tools
-from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +48,6 @@ def app(host: str = "0.0.0.0", port: int = 8000, protocol: str = 'streamable-htt
 def main():
     parser = setup_argparse()
     args = parser.parse_args()
-    if args.env_file:
-        logger.info(f"Load .env from: {args.env_file}")
-        load_dotenv(dotenv_path=args.env_file)
-    else:
-        load_dotenv()
     pre_app(log_level=args.log_level)
     app(host=args.host, port=args.port, protocol=args.protocol)
 

@@ -5,6 +5,3 @@ def get_csghub_api_endpoint():
 
 def get_csghub_api_key():
      return os.getenv("CSGHUB_SERVER_API_TOKEN", "")
-
-def get_csghub_mcp_server_mode():
-     return os.getenv("CSGHUB_MCP_SERVER_MODE", "stdio")
