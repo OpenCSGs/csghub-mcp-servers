@@ -16,9 +16,10 @@ logger = logging.getLogger(__name__)
 
 def register_space_tools(mcp_instance: FastMCP):
     register_create_tools(mcp_instance)
-    # register_run_tool(mcp_instance)
-    # register_upload_tool(mcp_instance)
+    register_run_tool(mcp_instance)
+    register_upload_tool(mcp_instance)
     register_query_resource_tool(mcp_instance)
+    register_get_clusters_tool(mcp_instance)
 
 def register_create_tools(mcp_instance: FastMCP):
 
@@ -29,21 +30,23 @@ def register_create_tools(mcp_instance: FastMCP):
 Parameters:
 - `token` (str, required): User's API token.
 - `name` (str, required): Name of the space.
-- `files` (list, optional): A list of file dictionaries to upload, each with 'name' and 'content'. If omitted, a default 'app.py' is created.
-- `cluster_id` (str, optional): Cluster ID for deployment. If omitted, the first available cluster is used.
-- `resource_id` (int, optional): Hardware resource ID. If omitted, the first available resource in the cluster is used.
-- `sdk` (str, optional, default: 'gradio'): The SDK to use.
-- `license` (str, optional, default: 'apache-2.0'): The space license.
+- `cluster_id` (str, required): The cluster ID to deploy the space.
+- `resource_id` (int, required): The resource ID for the space.
+- `sdk` (str, optional, default: 'gradio'): The SDK to use for the space.
+- `license` (str, optional, default: 'apache-2.0'): The license for the space.
 - `private` (bool, optional, default: False): Whether the space is private.
+- `order_detail_id` (int, optional): Order detail ID.
+- `env` (str, optional): Environment variables for the space.
+- `secrets` (str, optional): Secrets for the space.
 The final response includes results for creation, uploads, and the run attempt.""",
         structured_output=True,
     )
     def create_space(
         token: str,
         name: str,
-        files: list | None = None,
-        resource_id: int = 0,
-        cluster_id: str = "",
+        # files: list | None = None,
+        resource_id: int,
+        cluster_id: str,
         sdk: str = "gradio",
         license: str = "apache-2.0",
         private: bool = False,
@@ -57,10 +60,7 @@ The final response includes results for creation, uploads, and the run attempt."
         Args:
             token: User's API token.
             name: Name of the space.
-            files: A list of file dictionaries to upload.
             namespace: Namespace of the user.
-            resource_id: Resource ID for the hardware.
-            cluster_id: ID of the cluster to deploy to.
             sdk: SDK for the space (default: gradio).
             license: License of the space (default: apache-2.0).
             private: Whether the space is private (default: False).
@@ -77,45 +77,30 @@ The final response includes results for creation, uploads, and the run attempt."
             logger.error(f"Error calling user token API: {e}")
             return f"Error: Failed to get username. {e}"
         
-        final_cluster_id = cluster_id
-        if not final_cluster_id:
-            try:
-                clusters_resp = cluster.get_clusters(api_url=api_url, token=token)
-                clusters = clusters_resp.get('data', [])
-                if clusters and len(clusters) > 0:
-                    final_cluster_id = clusters[0].get('cluster_id')
-                else:
-                    return "Error: No available clusters found."
-            except Exception as e:
-                logger.error(f"Failed to get cluster list: {e}")
-                return f"Error: Could not fetch the list of available clusters. {e}"
-
-        final_resource_id = resource_id
-        if not final_resource_id:
-            try:
-                resources_resp = space_resources.get_space_resources(
-                    api_url=api_url,
-                    token=token,
-                    cluster_id=final_cluster_id,
-                    deploy_type=0
-                )
-                resources = resources_resp.get('data', [])
-                if resources and len(resources) > 0:
-                    final_resource_id = resources[0].get('id')
-                else:
-                    return f"Error: No available resources found for cluster {final_cluster_id}."
-            except Exception as e:
-                logger.error(f"Failed to get resource list for cluster {final_cluster_id}: {e}")
-                return f"Error: Could not fetch resources for cluster {final_cluster_id}. {e}"
-
         try:
-            resp = space.create_space(
+            resources_resp = space_resources.get_space_resources(
+                api_url=api_url,
+                token=token,
+                cluster_id=cluster_id,
+                deploy_type=0
+            )
+            resources = resources_resp.get('data', [])
+            if resources and len(resources) > 0:
+                resource_id = resources[0].get('id')
+            else:
+                return f"Error: No available resources found for cluster {cluster_id}."
+        except Exception as e:
+            logger.error(f"Failed to get resource list for cluster {cluster_id}: {e}")
+            return f"Error: Could not fetch resources for cluster {cluster_id}. {e}"
+        resp = {}
+        try:
+            create_resp = space.create_space(
                 api_url=api_url,
                 token=token,
                 name=name,
                 namespace=username,
-                resource_id=final_resource_id,
-                cluster_id=final_cluster_id,
+                resource_id=resource_id,
+                cluster_id=cluster_id,
                 sdk=sdk,
                 license=license,
                 private=private,
@@ -123,47 +108,39 @@ The final response includes results for creation, uploads, and the run attempt."
                 env=env,
                 secrets=secrets
             )
-
-            if 'data' in resp:
-                files_to_upload = files
-                if not files_to_upload:
-                    files_to_upload = [{
-                        'name': 'app.py',
-                        'content': '''import gradio as gr
+            resp['create_result'] = create_resp
+            if 'data' in create_resp:
+                file = {
+                    'name': 'app.py',
+                    'content': '''import gradio as gr
 
 def greet(name):
     return "Hello " + name + "!!"
 
 iface = gr.Interface(fn=greet, inputs="text", outputs="text")
 iface.launch()'''
-                        }]
+                    }
                     
-                upload_results = []
-                for file_info in files_to_upload:
-                    file_name = file_info.get('name')
-                    file_content = file_info.get('content')
-                    if not file_name or not file_content:
-                        upload_results.append({'error': f"Skipped invalid file entry: {file_info}"})
-                        continue
+                file_name = file.get('name')
+                file_content = file.get('content')
 
-                    try:
-                        encoded_content = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
-                        upload_resp = repo.upload_file(
-                            api_url=api_url,
-                            token=token,
-                            namespace=username,
-                            repo_name=name,
-                            file_path=file_name,
-                            content=encoded_content,
-                            repo_type="space",
-                            branch="main"
-                        )
-                        upload_results.append(upload_resp)
-                    except Exception as upload_e:
-                        upload_results.append({'error': f"Failed to upload {file_name}: {str(upload_e)}"})
-                    
-                resp['upload_results'] = upload_results
-
+                try:
+                    encoded_content = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
+                    upload_resp = repo.upload_file(
+                        api_url=api_url,
+                        token=token,
+                        namespace=username,
+                        repo_name=name,
+                        file_path=file_name,
+                        content=encoded_content,
+                        repo_type="space",
+                        branch="main"
+                    ) 
+                    resp['upload_result'] = upload_resp
+                except Exception as upload_e:
+                    logger.error(f"Failed to upload file {file_name}: {upload_e}")
+                    resp['upload_result'] = {'error': f"Failed to upload file: {str(upload_e)}"}
+                
                 try:
                     run_resp = space.run_space(
                         api_url=api_url,
@@ -242,12 +219,12 @@ iface.launch()""",
 def register_run_tool(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
-        name="run_space",
+        name="start_space",
         title="Run a CSGHub space",
         description="Starts a CSGHub space. Parameters: `token` (str, required): User's API token. `space_name` (str, required): Name of the space to run.",
         structured_output=True,
     )
-    def run_space(
+    def start_space(
         token: str,
         space_name: str,
     ) -> str:
@@ -336,3 +313,40 @@ def register_query_resource_tool(mcp_instance: FastMCP):
         except Exception as e:
             logger.error(f"Error calling get space resource API: {e}")
             return f"Error: Failed to get space resource. {e}"
+
+def register_get_clusters_tool(mcp_instance: FastMCP):
+
+    @mcp_instance.tool(
+        name="get_space_clusters",
+        title="Get all available space clusters",
+        description="Get all available space clusters. Parameters: `token` (str, required): User's API token.",
+        structured_output=True,
+    )
+    def get_space_clusters(
+        token: str,
+    ) -> str:
+        """
+        Get all available space clusters.
+
+        Args:
+            token: User's API token.
+        """
+        api_url = get_csghub_api_endpoint()
+        api_key = get_csghub_api_key()
+
+        if not token:
+            return "Error: The 'token' parameter is required."
+
+        try:
+            # Verifying token is valid
+            api_get_username_from_token(api_url, api_key, token)
+        except Exception as e:
+            logger.error(f"Error calling user token API: {e}")
+            return f"Error: Failed to get username. {e}"
+
+        try:
+            resp = cluster.get_clusters(api_url=api_url, token=token)
+            return json.dumps(resp)
+        except Exception as e:
+            logger.error(f"Error calling get clusters API: {e}")
+            return f"Error: Failed to get clusters. {e}"
