@@ -16,10 +16,12 @@ logger = logging.getLogger(__name__)
 
 def register_space_tools(mcp_instance: FastMCP):
     register_create_tools(mcp_instance)
-    register_run_tool(mcp_instance)
+    register_start_tool(mcp_instance)
     register_upload_tool(mcp_instance)
     register_query_resource_tool(mcp_instance)
     register_get_clusters_tool(mcp_instance)
+    register_stop_space_tool(mcp_instance)
+    register_get_space_detail_tool(mcp_instance)
 
 def register_create_tools(mcp_instance: FastMCP):
 
@@ -94,7 +96,7 @@ The final response includes results for creation, uploads, and the run attempt."
             return f"Error: Could not fetch resources for cluster {cluster_id}. {e}"
         resp = {}
         try:
-            create_resp = space.create_space(
+            create_resp = space.create(
                 api_url=api_url,
                 token=token,
                 name=name,
@@ -142,7 +144,7 @@ iface.launch()'''
                     resp['upload_result'] = {'error': f"Failed to upload file: {str(upload_e)}"}
                 
                 try:
-                    run_resp = space.run_space(
+                    run_resp = space.start(
                         api_url=api_url,
                         token=token,
                         namespace=username,
@@ -216,7 +218,7 @@ iface.launch()""",
             logger.error(f"Error calling upload file API: {e}")
             return f"Error: Failed to upload file. {e}"
 
-def register_run_tool(mcp_instance: FastMCP):
+def register_start_tool(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
         name="start_space",
@@ -260,6 +262,51 @@ def register_run_tool(mcp_instance: FastMCP):
         except Exception as e:
             logger.error(f"Error calling run space API: {e}")
             return f"Error: Failed to run space. {e}"
+
+def register_stop_space_tool(mcp_instance: FastMCP):
+
+    @mcp_instance.tool(
+        name="stop_space",
+        title="Stop a CSGHub space",
+        description="Stops a CSGHub space. Parameters: `token` (str, required): User's API token. `space_name` (str, required): Name of the space to stop.",
+        structured_output=True,
+    )
+    def stop_space(
+        token: str,
+        space_name: str,
+    ) -> str:
+        """
+        Stop a CSGHub space.
+
+        Args:
+            token: User's API token.
+            space_name: Name of the space.
+        """
+        api_url = get_csghub_api_endpoint()
+        api_key = get_csghub_api_key()
+
+        if not token:
+            return "Error: The 'token' parameter is required."
+        if not space_name:
+            return "Error: The 'space_name' parameter is required."
+
+        try:
+            username = api_get_username_from_token(api_url, api_key, token)
+        except Exception as e:
+            logger.error(f"Error calling user token API: {e}")
+            return f"Error: Failed to get username. {e}"
+
+        try:
+            resp = space.stop_space(
+                api_url=api_url,
+                token=token,
+                namespace=username,
+                space_name=space_name,
+            )
+            return json.dumps(resp)
+        except Exception as e:
+            logger.error(f"Error calling stop space API: {e}")
+            return f"Error: Failed to stop space. {e}"
 
 def register_query_resource_tool(mcp_instance: FastMCP):
 
@@ -350,3 +397,49 @@ def register_get_clusters_tool(mcp_instance: FastMCP):
         except Exception as e:
             logger.error(f"Error calling get clusters API: {e}")
             return f"Error: Failed to get clusters. {e}"
+
+def register_get_space_detail_tool(mcp_instance: FastMCP):
+
+    @mcp_instance.tool(
+        name="get_space_detail",
+        title="Get details of a CSGHub space",
+        description="Retrieves details for a specific CSGHub space. Parameters: `token` (str, required): User's API token. `space_name` (str, required): Name of the space.",
+        structured_output=True,
+    )
+    def get_space_detail(
+        token: str,
+        space_name: str,
+    ) -> str:
+        """
+        Get details of a CSGHub space.
+
+        Args:
+            token: User's API token.
+            space_name: Name of the space.
+        """
+        api_url = get_csghub_api_endpoint()
+        api_key = get_csghub_api_key()
+
+        if not token:
+            return "Error: The 'token' parameter is required."
+        if not space_name:
+            return "Error: The 'space_name' parameter is required."
+
+        try:
+            username = api_get_username_from_token(api_url, api_key, token)
+        except Exception as e:
+            logger.error(f"Error calling user token API: {e}")
+            return f"Error: Failed to get username. {e}"
+
+        try:
+            resp = repo.detail(
+                api_url=api_url,
+                token=token,
+                repo_type="space",
+                namespace=username,
+                repo_name=space_name,
+            )
+            return json.dumps(resp)
+        except Exception as e:
+            logger.error(f"Error calling get space detail API: {e}")
+            return f"Error: Failed to get space detail. {e}"

@@ -45,3 +45,34 @@ def upload_file(
 
     response.raise_for_status()
     return response.json()
+
+def detail(
+    api_url: str,
+    token: str,
+    repo_type: str,
+    namespace: str,
+    repo_name: str
+) -> dict:
+    """
+    Get repo details.
+
+    Args:
+        api_url: CSGHub API base URL.
+        token: User's token.
+        repo_type: Type of the repo, e.g. "space", "model", "dataset", "code".
+        namespace: Namespace of the user or organization.
+        repo_name: Name of the repo.
+
+    Returns:
+        Response data.
+    """
+    url = f"{api_url}/api/v1/{repo_type}s/{namespace}/{repo_name}"
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to get repo detail on {url}: {response.text}")
+
+    response.raise_for_status()
+    return response.json()

@@ -29,7 +29,7 @@ def api_get_top_download_spaces(api_url: str, num: int) -> dict:
     return response.json()
 
     
-def run_space(
+def start(
     api_url: str,
     token: str,
     namespace: str,
@@ -58,7 +58,7 @@ def run_space(
     response.raise_for_status()
     return response.json()
 
-def create_space(
+def create(
     api_url: str,
     token: str,
     name: str,
@@ -112,5 +112,34 @@ def create_space(
     if response.status_code != 200:
         logger.error(f"failed to create space on {url}: {response.text}")
         
+    response.raise_for_status()
+    return response.json()
+
+def stop(
+    api_url: str,
+    token: str,
+    namespace: str,
+    space_name: str
+) -> dict:
+    """
+    Stop a space.
+
+    Args:
+        api_url: CSGHub API base URL.
+        token: User's token.
+        namespace: Namespace of the user.
+        space_name: Name of the space.
+
+    Returns:
+        Response data.
+    """
+    url = f"{api_url}/api/v1/spaces/{namespace}/{space_name}/stop"
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    response = requests.post(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to stop space on {url}: {response.text}")
+
     response.raise_for_status()
     return response.json()
