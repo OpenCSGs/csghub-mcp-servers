@@ -82,3 +82,23 @@ def api_inference_create(
 
     response.raise_for_status()
     return response.json()
+
+def api_inference_stop(api_url: str, token: str, model_id: str, deploy_id: int):
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{api_url}/api/v1/models/{model_id}/run/{deploy_id}/stop"
+    response = requests.put(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to stop model inference on {url}: {response.text}")
+
+    response.raise_for_status()
+    return response.json()
+
+def api_inference_start(api_url: str, token: str, model_id: str, deploy_id: int):
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{api_url}/api/v1/models/{model_id}/run/{deploy_id}/start"
+    response = requests.put(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to start model inference on {url}: {response.text}")
+
+    response.raise_for_status()
+    return response.json()

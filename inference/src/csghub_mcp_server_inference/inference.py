@@ -9,6 +9,8 @@ from .api_client import (
     api_get_model_detail,
     api_get_available_resources,
     api_get_available_runtime_frameworks,
+    api_inference_stop,
+    api_inference_start,
 )
 from .utils import (
     get_csghub_api_endpoint, 
@@ -25,6 +27,7 @@ def register_inference_tools(mcp_instance: FastMCP):
     register_check_model(mcp_instance=mcp_instance)
     register_deploy_model_inference(mcp_instance=mcp_instance)
     register_query_inference_conditions(mcp_instance=mcp_instance)
+    register_inference_control_tools(mcp_instance=mcp_instance)
     
 def register_inference_list(mcp_instance: FastMCP):
 
@@ -63,8 +66,14 @@ def register_inference_query(mcp_instance: FastMCP):
     )
     def get_inference_status_by_deploy_id(token: str, model_id: str, deploy_id: int) -> str:
         api_url = get_csghub_api_endpoint()
-        json_data = api_get_inference_status(api_url, token, model_id, deploy_id)
-        return json.dumps({"data": json_data["data"]})
+        response_data = api_get_inference_status(api_url, token, model_id, deploy_id)
+        json_data = response_data["data"]
+        access_url = ""
+        status = json_data["status"]
+        if status.lower() == "running":
+            access_url = f"https://opencsg.com/endpoints/{model_id}/{deploy_id}?tab=summary"
+
+        return json.dumps({"data": json_data, "access_url": access_url})
 
 def register_check_model(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -120,3 +129,26 @@ def register_query_inference_conditions(mcp_instance: FastMCP):
             "resources_data": res_json_data["data"],
             "runtime_frameworks_data": run_json_data["data"]
         })
+
+def register_inference_control_tools(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="stop_inference_by_modelid_and_deployid",
+        title="Stop an deployed inference service by model id and deploy id and inference status should be stopped",
+        description="Stop an running inference service by model id and deploy id on CSGHub with user access token. model id and deploy id are required to stop the inference service.",
+        structured_output=True,
+    )
+    def stop_inference_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
+        api_url = get_csghub_api_endpoint()
+        res_json_data = api_inference_stop(api_url, token, model_id, deploy_id)
+        return json.dumps(res_json_data)
+
+    @mcp_instance.tool(
+        name="start_inference_by_modelid_and_deployid",
+         title="Start an deployed inference service by model id and deploy id and inference status should be running",
+        description="Start an stopped inference service by model id and deploy id on CSGHub with user access token. model id and deploy id are required to start the inference service.",
+        structured_output=True,
+    )
+    def start_inference_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
+        api_url = get_csghub_api_endpoint()
+        res_json_data = api_inference_start(api_url, token, model_id, deploy_id)
+        return json.dumps(res_json_data)   
