@@ -7,8 +7,11 @@ from .api_client import (
     api_list_finetunes,
     api_get_finetune_status,
     api_finetune_create,
+    api_finetune_stop,
+    api_finetune_start,
     api_get_available_resources,
     api_get_available_runtime_frameworks,
+    api_get_model_detail,
 )
 from .utils import (
     get_csghub_api_endpoint, 
@@ -24,6 +27,8 @@ def register_finetune_tools(mcp_instance: FastMCP):
     register_finetune_query(mcp_instance=mcp_instance)
     register_query_finetune_conditions(mcp_instance=mcp_instance)
     register_finetune_create(mcp_instance=mcp_instance)
+    register_finetune_control_tools(mcp_instance=mcp_instance)
+    register_check_model(mcp_instance=mcp_instance)
 
 def register_finetune_list(mcp_instance: FastMCP):
 
@@ -113,4 +118,39 @@ def register_finetune_create(mcp_instance: FastMCP):
             runtime_framework_id=runtime_framework_id,
             resource_id=resource_id,
         )
+        return json.dumps({"data": json_data["data"]})
+
+def register_finetune_control_tools(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="stop_finetune_by_modelid_and_deployid",
+        title="Stop an deployed finetune service by model id and deploy id and finetune status should be stopped",
+        description="Stop an running finetune service by model id and deploy id on CSGHub with user access token. model id and deploy id are required to stop the finetune service.",
+        structured_output=True,
+    )
+    def stop_finetune_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
+        api_url = get_csghub_api_endpoint()
+        res_json_data = api_finetune_stop(api_url, token, model_id, deploy_id)
+        return json.dumps(res_json_data)
+
+    @mcp_instance.tool(
+        name="start_finetune_by_modelid_and_deployid",
+         title="Start an deployed finetune service by model id and deploy id and finetune status should be running",
+        description="Start an stopped finetune service by model id and deploy id on CSGHub with user access token. model id and deploy id are required to start the finetune service.",
+        structured_output=True,
+    )
+    def start_finetune_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
+        api_url = get_csghub_api_endpoint()
+        res_json_data = api_finetune_start(api_url, token, model_id, deploy_id)
+        return json.dumps(res_json_data)   
+
+def register_check_model(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="check_model_by_model_id",
+        title="Get or search model detail and check model by model ID",
+        description="Retrieve and find model detail and check if model exists in CSGHub by a specific deploy ID from CSGHub.",
+        structured_output=True,
+    )
+    def check_model_by_model_id(model_id: str) -> str:
+        api_url = get_csghub_api_endpoint()
+        json_data = api_get_model_detail(api_url, model_id)
         return json.dumps({"data": json_data["data"]})
