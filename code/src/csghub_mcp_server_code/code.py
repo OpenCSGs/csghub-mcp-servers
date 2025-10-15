@@ -92,5 +92,6 @@ def register_code_creation(mcp_instance: FastMCP):
             readme=readme,
             description=description,
         )
-        return json.dumps({"data": json_data["data"]})
+        access_url = f"https://opencsg.com/codes/{username}/{code_name}"
+        return json.dumps({"data": json_data["data"], "access_url": access_url})
 
