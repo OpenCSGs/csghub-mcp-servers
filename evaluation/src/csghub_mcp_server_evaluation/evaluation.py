@@ -16,7 +16,7 @@ def register_evaluation_tools(mcp_instance: FastMCP):
     register_evaluation_list(mcp_instance=mcp_instance)
     register_evaluation_query(mcp_instance=mcp_instance)
     register_evaluation_create(mcp_instance=mcp_instance)
-    register_resource_query(mcp_instance=mcp_instance)
+    register_evaluation_delete(mcp_instance=mcp_instance)
 
 def register_evaluation_list(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -160,8 +160,6 @@ def register_evaluation_create(mcp_instance: FastMCP):
             logger.error(f"Error calling get opencompass models API: {e}")
             return f"Error: Failed to get opencompass models. {e}"
 
-
-def register_resource_query(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="get_clusters",
         title="Get available clusters",
@@ -199,3 +197,23 @@ def register_resource_query(mcp_instance: FastMCP):
         except Exception as e:
             logger.error(f"Error calling get space resources API: {e}")
             return f"Error: Failed to get space resources. {e}"
+
+def register_evaluation_delete(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="delete_evaluation_by_id",
+        title="Delete evaluation by numeric ID",
+        description="Delete the evaluation by a specific numeric ID from CSGHub with user access token.",
+        structured_output=True,
+    )
+    def delete_evaluation_by_id(token: str, id: int) -> str:
+        if not token:
+            return "Error: must input CSGHUB_ACCESS_TOKEN."
+        api_url = get_csghub_api_endpoint()
+        try:
+            resp = evaluation.delete_evaluation(api_url, token, id)
+            if not resp:
+                return json.dumps({"message": "Evaluation deleted successfully"})
+            return json.dumps(resp)
+        except Exception as e:
+            logger.error(f"Error calling delete evaluation API: {e}")
+            return f"Error: Failed to delete evaluation. {e}"

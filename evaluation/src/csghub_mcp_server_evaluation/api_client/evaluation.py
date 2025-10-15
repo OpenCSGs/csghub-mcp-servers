@@ -86,3 +86,25 @@ def create_evaluation(api_url: str,
     
     response.raise_for_status()
     return response.json()
+
+def delete_evaluation(api_url: str, token: str, evaluation_id: int) -> dict:
+    """Delete an evaluation task.
+
+    Args:
+        api_url: CSGHub API base URL
+        token: User access token
+        evaluation_id: ID of the evaluation task to be deleted
+
+    Returns:
+        Response from the API
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{api_url}/api/v1/evaluations/{evaluation_id}"
+    response = requests.delete(url, headers=headers)
+    if response.status_code not in [200, 204]:
+        logger.error(f"failed to delete evaluation on {url}: {response.text}")
+
+    response.raise_for_status()
+    if response.status_code == 204:
+        return {}
+    return response.json()
