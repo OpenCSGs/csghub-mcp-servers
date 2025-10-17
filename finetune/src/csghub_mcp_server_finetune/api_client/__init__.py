@@ -4,6 +4,7 @@ from .finetune import api_get_finetune_status
 from .finetune import api_finetune_create
 from .finetune import api_finetune_stop
 from .finetune import api_finetune_start
+from .finetune import api_finetune_delete
 from .resource import api_get_available_resources
 from .runtime_framework import api_get_available_runtime_frameworks
 from .model import api_get_model_detail

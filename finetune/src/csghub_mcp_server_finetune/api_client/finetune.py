@@ -97,3 +97,13 @@ def api_finetune_start(api_url: str, token: str, model_id: str, deploy_id: int):
 
     response.raise_for_status()
     return response.json()
+
+def api_finetune_delete(api_url: str, token: str, model_id: str, deploy_id: int):
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{api_url}/api/v1/models/{model_id}/finetune/{deploy_id}"
+    response = requests.delete(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to delete model finetune on {url}: {response.text}")
+
+    response.raise_for_status()
+    return response.json()

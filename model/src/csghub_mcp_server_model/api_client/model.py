@@ -81,3 +81,13 @@ def api_create_model(
 
     response.raise_for_status()
     return response.json()
+
+def api_delete_model(api_url: str, token: str, model_path: str) -> dict:
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{api_url}/api/v1/models/{model_path}"
+    response = requests.delete(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to delete model on {url}: {response.text}")
+
+    response.raise_for_status()
+    return response.json()

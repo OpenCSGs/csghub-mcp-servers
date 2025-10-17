@@ -6,6 +6,7 @@ from .api_client import (
     api_list_codes,
     api_get_code_details,
     api_create_code,
+    api_delete_code,
 )
 from .utils import (
     get_csghub_api_endpoint, 
@@ -18,12 +19,13 @@ def register_code_tools(mcp_instance: FastMCP):
     register_code_list(mcp_instance=mcp_instance)
     register_code_query(mcp_instance=mcp_instance)
     register_code_creation(mcp_instance=mcp_instance)
+    register_code_delete(mcp_instance=mcp_instance)
 
 def register_code_list(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="list_user_codes",
-        title="List codes for a user from CSGHub",
-        description="Retrieve a list of codes for a specific user from CSGHub with user access token. You can control the pagination by specifying the number of items per page and the page number.",
+        title="List code repo for a user from CSGHub",
+        description="Retrieve a list of code repo for a specific user from CSGHub with user access token. You can control the pagination by specifying the number of items per page and the page number.",
         structured_output=True,
     )
     def list_user_codes(token: str, per: int = 10, page: int = 1) -> str:
@@ -51,8 +53,8 @@ def register_code_list(mcp_instance: FastMCP):
 def register_code_query(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="get_code_detail_by_path",
-        title="Get code details by code path",
-        description="Retrieve the code details by a specific path from CSGHub with user access token. This is useful for checking the details of a code repo that has been submitted to the CSGHub service.",
+        title="Get code repo details by code path",
+        description="Retrieve the code repo details by a specific path from CSGHub with user access token. This is useful for checking the details of a code repo that has been submitted to the CSGHub service.",
         structured_output=True,
     )
     def get_code_detail_by_path(token: str, code_path: str) -> str:
@@ -94,4 +96,16 @@ def register_code_creation(mcp_instance: FastMCP):
         )
         access_url = f"https://opencsg.com/codes/{username}/{code_name}"
         return json.dumps({"data": json_data["data"], "access_url": access_url})
+
+def register_code_delete(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="delete_code_by_path",
+        title="Delete code repo by code path",
+        description="Delete the code repo by a specific path from CSGHub with user access token.",
+        structured_output=True,
+    )
+    def delete_code_by_path(token: str, code_path: str) -> str:
+        api_url = get_csghub_api_endpoint()
+        json_data = api_delete_code(api_url=api_url, token=token, code_path=code_path)
+        return json.dumps(json_data)
 
