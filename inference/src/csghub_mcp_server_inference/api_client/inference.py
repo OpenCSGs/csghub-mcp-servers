@@ -59,6 +59,7 @@ def api_inference_create(
     cluster_id: str,
     runtime_framework_id: int,
     resource_id: int,
+    endpoint: str,
 ):
     headers = {"Authorization": f"Bearer {token}"}
     url = f"{api_url}/api/v1/models/{model_id}/run"
@@ -66,7 +67,7 @@ def api_inference_create(
     json_data = {
         "cluster_id": cluster_id,
         "runtime_framework_id": runtime_framework_id,
-         "resource_id": resource_id,
+        "resource_id": resource_id,
         "cost_per_hour": 0,
         "deploy_name": f"deploy_{random_num}",
         "env": "",
@@ -75,6 +76,7 @@ def api_inference_create(
         "min_replica": 1,
         "revision": "main",
         "secure_level": 1,
+        "entrypoint": endpoint,
     }
     response = requests.post(url, headers=headers, json=json_data)
     if response.status_code != 200:
@@ -112,3 +114,5 @@ def api_inference_delete(api_url: str, token: str, model_id: str, deploy_id: int
 
     response.raise_for_status()
     return response.json()
+
+
