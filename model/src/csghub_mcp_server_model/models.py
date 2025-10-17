@@ -8,6 +8,7 @@ from .api_client import (
     api_list_user_models,
     api_get_model_details,
     api_create_model,
+    api_delete_model,
 )
 from .utils import (
     get_csghub_api_endpoint,
@@ -21,6 +22,7 @@ def register_model_tools(mcp_instance: FastMCP):
     register_user_model_list(mcp_instance=mcp_instance)
     register_model_query(mcp_instance=mcp_instance)
     register_model_creation(mcp_instance=mcp_instance)
+    register_model_delete(mcp_instance=mcp_instance)
 
 def register_model_query_tools(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -108,3 +110,15 @@ def register_model_creation(mcp_instance: FastMCP):
         
         access_url = f"https://opencsg.com/models/{username}/{model_name}"
         return json.dumps({"data": json_data["data"], "access_url": access_url})
+
+def register_model_delete(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="delete_model_by_path",
+        title="Delete model repo by code path",
+        description="Delete the model repo by a specific path from CSGHub with user access token.",
+        structured_output=True,
+    )
+    def delete_model_by_path(token: str, model_path: str) -> str:
+        api_url = get_csghub_api_endpoint()
+        json_data = api_delete_model(api_url=api_url, token=token, model_path=model_path)
+        return json.dumps(json_data)

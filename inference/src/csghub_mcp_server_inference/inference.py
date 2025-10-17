@@ -11,6 +11,7 @@ from .api_client import (
     api_get_available_runtime_frameworks,
     api_inference_stop,
     api_inference_start,
+    api_inference_delete,
 )
 from .utils import (
     get_csghub_api_endpoint, 
@@ -151,4 +152,16 @@ def register_inference_control_tools(mcp_instance: FastMCP):
     def start_inference_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
         api_url = get_csghub_api_endpoint()
         res_json_data = api_inference_start(api_url, token, model_id, deploy_id)
-        return json.dumps(res_json_data)   
+        return json.dumps(res_json_data)
+    
+    @mcp_instance.tool(
+        name="delete_inference_by_modelid_and_deployid",
+         title="Delete an deployed inference service by model id and deploy id",
+        description="Delete an inference service by model id and deploy id on CSGHub with user access token. model id and deploy id are required to delete the inference service. It's good idea to stop the inference service before deleting it.",
+        structured_output=True,
+    )
+    def delete_inference_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
+        api_url = get_csghub_api_endpoint()
+        res_json_data = api_inference_delete(api_url, token, model_id, deploy_id)
+        return json.dumps(res_json_data)
+

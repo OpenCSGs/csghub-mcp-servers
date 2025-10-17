@@ -56,3 +56,13 @@ def api_create_code(
 
     response.raise_for_status()
     return response.json()
+
+def api_delete_code(api_url: str, token: str, code_path: str) -> dict:
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{api_url}/api/v1/codes/{code_path}"
+    response = requests.delete(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to delete code on {url}: {response.text}")
+
+    response.raise_for_status()
+    return response.json()

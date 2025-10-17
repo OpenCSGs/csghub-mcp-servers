@@ -9,6 +9,7 @@ from .api_client import (
     api_finetune_create,
     api_finetune_stop,
     api_finetune_start,
+    api_finetune_delete,
     api_get_available_resources,
     api_get_available_runtime_frameworks,
     api_get_model_detail,
@@ -141,7 +142,18 @@ def register_finetune_control_tools(mcp_instance: FastMCP):
     def start_finetune_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
         api_url = get_csghub_api_endpoint()
         res_json_data = api_finetune_start(api_url, token, model_id, deploy_id)
-        return json.dumps(res_json_data)   
+        return json.dumps(res_json_data)
+    
+    @mcp_instance.tool(
+        name="delete_finetune_by_modelid_and_deployid",
+         title="Delete an deployed finetune service by model id and deploy id",
+        description="Delete an finetune service by model id and deploy id on CSGHub with user access token. model id and deploy id are required to delete the finetune service. It's good idea to stop finetune service before deleting it.",
+        structured_output=True,
+    )
+    def delete_finetune_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
+        api_url = get_csghub_api_endpoint()
+        res_json_data = api_finetune_delete(api_url, token, model_id, deploy_id)
+        return json.dumps(res_json_data)  
 
 def register_check_model(mcp_instance: FastMCP):
     @mcp_instance.tool(

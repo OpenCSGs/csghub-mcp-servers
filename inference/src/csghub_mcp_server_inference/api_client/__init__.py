@@ -4,6 +4,7 @@ from .inference import api_get_inference_status
 from .inference import api_inference_create
 from .inference import api_inference_stop
 from .inference import api_inference_start
+from .inference import api_inference_delete
 from .model import api_get_model_detail
 from .resource import api_get_available_resources
 from .runtime_framework import api_get_available_runtime_frameworks
