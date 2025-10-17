@@ -143,3 +143,31 @@ def stop(
 
     response.raise_for_status()
     return response.json()
+
+def delete(
+    api_url: str,
+    token: str,
+    namespace: str,
+    repo_name: str
+) -> dict:
+    """Delete a space.
+    
+    Args:
+        api_url: CSGHub API base URL
+        token: User's token
+        namespace: Namespace of the user
+        repo_name: Name of the space
+        
+    Returns:
+        Response data
+    """
+    url = f"{api_url}/api/v1/spaces/{namespace}/{repo_name}"
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+    response = requests.delete(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to delete space on {url}: {response.text}")
+        
+    response.raise_for_status()
+    return response.json()
