@@ -1,10 +1,9 @@
 import logging
-from mcp.server.fastmcp import FastMCP
 import json
 import base64
+from mcp.server.fastmcp import FastMCP
 from .api_client import (
     api_get_username_from_token,
-    api_get_top_download_spaces,
 )
 from .api_client import space, repo, space_resources, cluster
 from .utils import (
@@ -22,6 +21,7 @@ def register_space_tools(mcp_instance: FastMCP):
     register_get_clusters_tool(mcp_instance)
     register_stop_space_tool(mcp_instance)
     register_get_space_detail_tool(mcp_instance)
+    register_delete_space_tool(mcp_instance)
 
 def register_create_tools(mcp_instance: FastMCP):
 
@@ -252,7 +252,7 @@ def register_start_tool(mcp_instance: FastMCP):
             return f"Error: Failed to get username. {e}"
 
         try:
-            resp = space.run_space(
+            resp = space.start(
                 api_url=api_url,
                 token=token,
                 namespace=username,
@@ -297,7 +297,7 @@ def register_stop_space_tool(mcp_instance: FastMCP):
             return f"Error: Failed to get username. {e}"
 
         try:
-            resp = space.stop_space(
+            resp = space.stop(
                 api_url=api_url,
                 token=token,
                 namespace=username,
@@ -443,3 +443,49 @@ def register_get_space_detail_tool(mcp_instance: FastMCP):
         except Exception as e:
             logger.error(f"Error calling get space detail API: {e}")
             return f"Error: Failed to get space detail. {e}"
+
+
+def register_delete_space_tool(mcp_instance: FastMCP):
+
+    @mcp_instance.tool(
+        name="delete_space",
+        title="Delete a CSGHub space",
+        description="Deletes a CSGHub space. Parameters: `token` (str, required): User's API token. `space_name` (str, required): Name of the space to delete.",
+        structured_output=True,
+    )
+    def delete_space(
+        token: str,
+        space_name: str,
+    ) -> str:
+        """
+        Delete a CSGHub space.
+
+        Args:
+            token: User's API token.
+            space_name: Name of the space.
+        """
+        api_url = get_csghub_api_endpoint()
+        api_key = get_csghub_api_key()
+
+        if not token:
+            return "Error: The 'token' parameter is required."
+        if not space_name:
+            return "Error: The 'space_name' parameter is required."
+
+        try:
+            username = api_get_username_from_token(api_url, api_key, token)
+        except Exception as e:
+            logger.error(f"Error calling user token API: {e}")
+            return f"Error: Failed to get username. {e}"
+
+        try:
+            resp = space.delete(
+                api_url=api_url,
+                token=token,
+                namespace=username,
+                repo_name=space_name,
+            )
+            return json.dumps(resp)
+        except Exception as e:
+            logger.error(f"Error calling delete space API: {e}")
+            return f"Error: Failed to delete space. {e}"
