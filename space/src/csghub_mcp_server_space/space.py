@@ -5,7 +5,10 @@ from mcp.server.fastmcp import FastMCP
 from .api_client import (
     api_get_username_from_token,
 )
-from .api_client import space, repo, space_resources, cluster
+from .api_client import (
+    space, repo, space_resources, cluster,
+    query_my_spaces,
+)
 from .utils import (
     get_csghub_api_endpoint, 
     get_csghub_api_key
@@ -22,6 +25,7 @@ def register_space_tools(mcp_instance: FastMCP):
     register_stop_space_tool(mcp_instance)
     register_get_space_detail_tool(mcp_instance)
     register_delete_space_tool(mcp_instance)
+    register_list_my_space_tool(mcp_instance)
 
 def register_create_tools(mcp_instance: FastMCP):
 
@@ -444,7 +448,6 @@ def register_get_space_detail_tool(mcp_instance: FastMCP):
             logger.error(f"Error calling get space detail API: {e}")
             return f"Error: Failed to get space detail. {e}"
 
-
 def register_delete_space_tool(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
@@ -489,3 +492,30 @@ def register_delete_space_tool(mcp_instance: FastMCP):
         except Exception as e:
             logger.error(f"Error calling delete space API: {e}")
             return f"Error: Failed to delete space. {e}"
+
+def register_list_my_space_tool(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="list_my_spaces",
+        title="List spaces for a user from CSGHub",
+        description="Retrieve a list of spaces for a specific user from CSGHub. You can control the pagination by specifying the number of items per page and the page number.",
+        structured_output=True,
+    )
+    def list_my_spaces(token: str, per: int = 10, page: int = 1) -> str:
+        if not token:
+            return "Error: must input CSGHUB_ACCESS_TOKEN."
+        
+        api_url = get_csghub_api_endpoint()
+        api_key = get_csghub_api_key()
+        
+        try:
+            username = api_get_username_from_token(api_url, api_key, token)
+        except Exception as e:
+            logger.error(f"Error calling user token API: {e}")
+            return f"Error: Failed to get username. {e}"
+        
+        try:
+            evaluations = query_my_spaces(api_url, token, username, per, page)
+            return json.dumps(evaluations)
+        except Exception as e:
+            logger.error(f"Error calling evaluation API: {e}")
+            return f"Error: Failed to list spaces. {e}"
