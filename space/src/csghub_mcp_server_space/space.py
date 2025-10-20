@@ -17,17 +17,15 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 def register_space_tools(mcp_instance: FastMCP):
-    register_create_tools(mcp_instance)
-    register_start_tool(mcp_instance)
-    register_upload_tool(mcp_instance)
-    register_query_resource_tool(mcp_instance)
-    register_get_clusters_tool(mcp_instance)
-    register_stop_space_tool(mcp_instance)
-    register_get_space_detail_tool(mcp_instance)
-    register_delete_space_tool(mcp_instance)
-    register_list_my_space_tool(mcp_instance)
+    register_space_create(mcp_instance)
+    register_space_start(mcp_instance) 
+    register_space_delete(mcp_instance) 
+    register_space_stop(mcp_instance)
+    register_file_upload(mcp_instance)
+    register_space_detail(mcp_instance)
 
-def register_create_tools(mcp_instance: FastMCP):
+
+def register_space_create(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
         name="create_space",
@@ -38,13 +36,15 @@ Parameters:
 - `name` (str, required): Name of the space.
 - `cluster_id` (str, required): The cluster ID to deploy the space.
 - `resource_id` (int, required): The resource ID for the space.
+- `namespace` (str, optional): The user's namespace.
 - `sdk` (str, optional, default: 'gradio'): The SDK to use for the space.
 - `license` (str, optional, default: 'apache-2.0'): The license for the space.
 - `private` (bool, optional, default: False): Whether the space is private.
 - `order_detail_id` (int, optional): Order detail ID.
 - `env` (str, optional): Environment variables for the space.
 - `secrets` (str, optional): Secrets for the space.
-The final response includes results for creation, uploads, and the run attempt.""",
+The final response includes results for creation, uploads, and the run attempt. 
+In response, ["namespace"]["path"] can be used as namespace for other tool""",
         structured_output=True,
     )
     def create_space(
@@ -53,6 +53,7 @@ The final response includes results for creation, uploads, and the run attempt."
         # files: list | None = None,
         resource_id: int,
         cluster_id: str,
+        namespace: str = "",
         sdk: str = "gradio",
         license: str = "apache-2.0",
         private: bool = False,
@@ -75,36 +76,14 @@ The final response includes results for creation, uploads, and the run attempt."
             secrets: Secrets for the space.
         """
         api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
         
-        try:
-            username = api_get_username_from_token(api_url, api_key, token)
-        except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
-        
-        try:
-            resources_resp = space_resources.get_space_resources(
-                api_url=api_url,
-                token=token,
-                cluster_id=cluster_id,
-                deploy_type=0
-            )
-            resources = resources_resp.get('data', [])
-            if resources and len(resources) > 0:
-                resource_id = resources[0].get('id')
-            else:
-                return f"Error: No available resources found for cluster {cluster_id}."
-        except Exception as e:
-            logger.error(f"Failed to get resource list for cluster {cluster_id}: {e}")
-            return f"Error: Could not fetch resources for cluster {cluster_id}. {e}"
         resp = {}
         try:
             create_resp = space.create(
                 api_url=api_url,
                 token=token,
                 name=name,
-                namespace=username,
+                namespace=namespace,
                 resource_id=resource_id,
                 cluster_id=cluster_id,
                 sdk=sdk,
@@ -115,6 +94,7 @@ The final response includes results for creation, uploads, and the run attempt."
                 secrets=secrets
             )
             resp['create_result'] = create_resp
+            namespace = create_resp["data"]["path"].split('/')[0]
             if 'data' in create_resp:
                 file = {
                     'name': 'app.py',
@@ -135,7 +115,7 @@ iface.launch()'''
                     upload_resp = repo.upload_file(
                         api_url=api_url,
                         token=token,
-                        namespace=username,
+                        namespace=namespace,
                         repo_name=name,
                         file_path=file_name,
                         content=encoded_content,
@@ -151,7 +131,7 @@ iface.launch()'''
                     run_resp = space.start(
                         api_url=api_url,
                         token=token,
-                        namespace=username,
+                        namespace=namespace,
                         space_name=name,
                     )
                     resp['run_result'] = run_resp
@@ -164,8 +144,77 @@ iface.launch()'''
             logger.error(f"Error during core transaction (create, upload, or run): {e}")
             return f"Error: Failed during the core operation (create, upload, or run). {e}"
 
+    @mcp_instance.tool(
+        name="get_space_resource",
+        title="Get available space resources",
+        description="Get available space resources. Parameters: `token` (str, required): User's API token. `cluster_id` (str, optional): ID of the cluster. If not provided, the first available cluster will be used.",
+        structured_output=True,
+    )
+    def get_space_resource(
+        token: str,
+        cluster_id: str = ""
+    ) -> str:
+        """
+        Get available space resources.
 
-def register_upload_tool(mcp_instance: FastMCP):
+        Args:
+            token: User's API token.
+            cluster_id: ID of the cluster.
+        """
+        api_url = get_csghub_api_endpoint()
+
+        if not token:
+            return "Error: The 'token' parameter is required."
+
+        try:
+            final_cluster_id = cluster_id
+            if not final_cluster_id:
+                clusters_resp = cluster.get_clusters(api_url=api_url, token=token)
+                clusters = clusters_resp.get('data', [])
+                if clusters and len(clusters) > 0:
+                    final_cluster_id = clusters[0].get('id')
+                else:
+                    return "Error: No available clusters found."
+
+            resp = space_resources.get_space_resources(
+                api_url=api_url,
+                token=token,
+                cluster_id=final_cluster_id,
+                deploy_type=0
+            )
+            return json.dumps(resp)
+        except Exception as e:
+            logger.error(f"Error calling get space resource API: {e}")
+            return f"Error: Failed to get space resource. {e}"
+
+    @mcp_instance.tool(
+        name="get_space_clusters",
+        title="Get all available space clusters",
+        description="Get all available space clusters. Parameters: `token` (str, required): User's API token.",
+        structured_output=True,
+    )
+    def get_space_clusters(
+        token: str,
+    ) -> str:
+        """
+        Get all available space clusters.
+
+        Args:
+            token: User's API token.
+        """
+        api_url = get_csghub_api_endpoint()
+
+        if not token:
+            return "Error: The 'token' parameter is required."
+
+        try:
+            resp = cluster.get_clusters(api_url=api_url, token=token)
+            return json.dumps(resp)
+        except Exception as e:
+            logger.error(f"Error calling get clusters API: {e}")
+            return f"Error: Failed to get clusters. {e}"
+
+def register_file_upload(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
         name="upload_space_file",
@@ -222,7 +271,7 @@ iface.launch()""",
             logger.error(f"Error calling upload file API: {e}")
             return f"Error: Failed to upload file. {e}"
 
-def register_start_tool(mcp_instance: FastMCP):
+def register_space_start(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
         name="start_space",
@@ -267,7 +316,7 @@ def register_start_tool(mcp_instance: FastMCP):
             logger.error(f"Error calling run space API: {e}")
             return f"Error: Failed to run space. {e}"
 
-def register_stop_space_tool(mcp_instance: FastMCP):
+def register_space_stop(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
         name="stop_space",
@@ -312,97 +361,7 @@ def register_stop_space_tool(mcp_instance: FastMCP):
             logger.error(f"Error calling stop space API: {e}")
             return f"Error: Failed to stop space. {e}"
 
-def register_query_resource_tool(mcp_instance: FastMCP):
-
-    @mcp_instance.tool(
-        name="get_space_resource",
-        title="Get available space resources",
-        description="Get available space resources. Parameters: `token` (str, required): User's API token. `cluster_id` (str, optional): ID of the cluster. If not provided, the first available cluster will be used.",
-        structured_output=True,
-    )
-    def get_space_resource(
-        token: str,
-        cluster_id: str = ""
-    ) -> str:
-        """
-        Get available space resources.
-
-        Args:
-            token: User's API token.
-            cluster_id: ID of the cluster.
-        """
-        api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
-
-        if not token:
-            return "Error: The 'token' parameter is required."
-
-        try:
-            # Verifying token is valid
-            api_get_username_from_token(api_url, api_key, token)
-        except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
-
-        try:
-            final_cluster_id = cluster_id
-            if not final_cluster_id:
-                clusters_resp = cluster.get_clusters(api_url=api_url, token=token)
-                clusters = clusters_resp.get('data', [])
-                if clusters and len(clusters) > 0:
-                    final_cluster_id = clusters[0].get('id')
-                else:
-                    return "Error: No available clusters found."
-
-            resp = space_resources.get_space_resources(
-                api_url=api_url,
-                token=token,
-                cluster_id=final_cluster_id,
-                deploy_type=0
-            )
-            return json.dumps(resp)
-        except Exception as e:
-            logger.error(f"Error calling get space resource API: {e}")
-            return f"Error: Failed to get space resource. {e}"
-
-def register_get_clusters_tool(mcp_instance: FastMCP):
-
-    @mcp_instance.tool(
-        name="get_space_clusters",
-        title="Get all available space clusters",
-        description="Get all available space clusters. Parameters: `token` (str, required): User's API token.",
-        structured_output=True,
-    )
-    def get_space_clusters(
-        token: str,
-    ) -> str:
-        """
-        Get all available space clusters.
-
-        Args:
-            token: User's API token.
-        """
-        api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
-
-        if not token:
-            return "Error: The 'token' parameter is required."
-
-        try:
-            # Verifying token is valid
-            api_get_username_from_token(api_url, api_key, token)
-        except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
-
-        try:
-            resp = cluster.get_clusters(api_url=api_url, token=token)
-            return json.dumps(resp)
-        except Exception as e:
-            logger.error(f"Error calling get clusters API: {e}")
-            return f"Error: Failed to get clusters. {e}"
-
-def register_get_space_detail_tool(mcp_instance: FastMCP):
+def register_space_detail(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
         name="get_space_detail",
@@ -448,7 +407,8 @@ def register_get_space_detail_tool(mcp_instance: FastMCP):
             logger.error(f"Error calling get space detail API: {e}")
             return f"Error: Failed to get space detail. {e}"
 
-def register_delete_space_tool(mcp_instance: FastMCP):
+
+def register_space_delete(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
         name="delete_space",
