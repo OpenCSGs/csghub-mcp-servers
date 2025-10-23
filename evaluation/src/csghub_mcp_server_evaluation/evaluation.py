@@ -21,9 +21,11 @@ def register_evaluation_list(mcp_instance: FastMCP):
         description="Retrieve a list of evaluation services for a specific user from CSGHub. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. You can control the pagination by specifying the number of items per page and the page number.",
         structured_output=True,
     )
-    def list_evaluation(token: str, per: int = 10, page: int = 1) -> str:
+    def list_evaluation(token: str, username: str, per: int = 10, page: int = 1) -> str:
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
+        if not username:
+            return "Error: The 'username' parameter is required."
         
         try:
             evaluations = evaluation.list_evaluations(token, per, page)
