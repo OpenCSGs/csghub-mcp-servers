@@ -10,8 +10,7 @@ from .api_client import (
     query_my_spaces,
 )
 from .utils import (
-    get_csghub_api_endpoint, 
-    get_csghub_api_key
+    get_csghub_api_endpoint
 )
 
 logger = logging.getLogger(__name__)
@@ -219,11 +218,12 @@ def register_file_upload(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="upload_space_file",
         title="Upload a file to a CSGHub space",
-        description="Upload a file to a specified CSGHub space. Parameters: `token` (str, required): User's API token. `space_name` (str, required): Name of the space. `file_name` (str, optional): Path of the file in the space repository (e.g., 'app.py'). `file_content` (str, optional): The raw content of the file to upload, defaults to a simple Gradio app. `branch` (str, optional, default: 'main'): The target branch.",
+        description="Upload a file to a specified CSGHub space. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. `space_name` (str, required): Name of the space. `file_name` (str, optional): Path of the file in the space repository (e.g., 'app.py'). `file_content` (str, optional): The raw content of the file to upload, defaults to a simple Gradio app. `branch` (str, optional, default: 'main'): The target branch.",
         structured_output=True,
     )
     def upload_file(
         token: str,
+        username: str,
         space_name: str,
         file_name: str = "app.py",
         file_content: str = """import gradio as gr
@@ -231,7 +231,7 @@ def register_file_upload(mcp_instance: FastMCP):
 def greet(name):
     return "Hello " + name + "!!"
 
-iface = gr.Interface(fn=greet, inputs="text", outputs="text")
+iface = gr.Interface(fn=greet, inputs=\"text\", outputs=\"text\")
 iface.launch()""",
         branch: str = "main"
     ) -> str:
@@ -240,19 +240,20 @@ iface.launch()""",
 
         Args:
             token: User's API token.
+            username: The user's namespace.
             space_name: Name of the space.
-            remote_file_path: Path of the file in the space repository (e.g., 'app.py').
+            file_name: Path of the file in the space repository (e.g., 'app.py').
             file_content: The raw content of the file to upload. Defaults to a simple Gradio app.
             branch: The target branch (default: main).
         """
         api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
 
-        try:
-            username = api_get_username_from_token(api_url, api_key, token)
-        except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
+        if not token:
+            return "Error: The 'token' parameter is required."
+        if not username:
+            return "Error: The 'username' parameter is required."
+        if not space_name:
+            return "Error: The 'space_name' parameter is required."
 
         try:
             encoded_content = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
@@ -276,11 +277,12 @@ def register_space_start(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="start_space",
         title="Run a CSGHub space",
-        description="Starts a CSGHub space. Parameters: `token` (str, required): User's API token. `space_name` (str, required): Name of the space to run.",
+        description="Starts a CSGHub space. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. `space_name` (str, required): Name of the space to run.",
         structured_output=True,
     )
     def start_space(
         token: str,
+        username: str,
         space_name: str,
     ) -> str:
         """
@@ -288,21 +290,17 @@ def register_space_start(mcp_instance: FastMCP):
 
         Args:
             token: User's API token.
+            username: The user's namespace.
             space_name: Name of the space.
         """
         api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
 
         if not token:
             return "Error: The 'token' parameter is required."
+        if not username:
+            return "Error: The 'username' parameter is required."
         if not space_name:
             return "Error: The 'space_name' parameter is required."
-
-        try:
-            username = api_get_username_from_token(api_url, api_key, token)
-        except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
 
         try:
             resp = space.start(
@@ -321,11 +319,12 @@ def register_space_stop(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="stop_space",
         title="Stop a CSGHub space",
-        description="Stops a CSGHub space. Parameters: `token` (str, required): User's API token. `space_name` (str, required): Name of the space to stop.",
+        description="Stops a CSGHub space. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. `space_name` (str, required): Name of the space to stop.",
         structured_output=True,
     )
     def stop_space(
         token: str,
+        username: str,
         space_name: str,
     ) -> str:
         """
@@ -333,21 +332,17 @@ def register_space_stop(mcp_instance: FastMCP):
 
         Args:
             token: User's API token.
+            username: The user's namespace.
             space_name: Name of the space.
         """
         api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
 
         if not token:
             return "Error: The 'token' parameter is required."
+        if not username:
+            return "Error: The 'username' parameter is required."
         if not space_name:
             return "Error: The 'space_name' parameter is required."
-
-        try:
-            username = api_get_username_from_token(api_url, api_key, token)
-        except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
 
         try:
             resp = space.stop(
@@ -366,11 +361,12 @@ def register_space_detail(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="get_space_detail",
         title="Get details of a CSGHub space",
-        description="Retrieves details for a specific CSGHub space. Parameters: `token` (str, required): User's API token. `space_name` (str, required): Name of the space.",
+        description="Retrieves details for a specific CSGHub space. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. `space_name` (str, required): Name of the space.",
         structured_output=True,
     )
     def get_space_detail(
         token: str,
+        username: str,
         space_name: str,
     ) -> str:
         """
@@ -378,21 +374,17 @@ def register_space_detail(mcp_instance: FastMCP):
 
         Args:
             token: User's API token.
+            username: The user's namespace.
             space_name: Name of the space.
         """
         api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
 
         if not token:
             return "Error: The 'token' parameter is required."
+        if not username:
+            return "Error: The 'username' parameter is required."
         if not space_name:
             return "Error: The 'space_name' parameter is required."
-
-        try:
-            username = api_get_username_from_token(api_url, api_key, token)
-        except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
 
         try:
             resp = repo.detail(
@@ -413,11 +405,12 @@ def register_space_delete(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="delete_space",
         title="Delete a CSGHub space",
-        description="Deletes a CSGHub space. Parameters: `token` (str, required): User's API token. `space_name` (str, required): Name of the space to delete.",
+        description="Deletes a CSGHub space. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. `space_name` (str, required): Name of the space to delete.",
         structured_output=True,
     )
     def delete_space(
         token: str,
+        username: str,
         space_name: str,
     ) -> str:
         """
@@ -425,21 +418,17 @@ def register_space_delete(mcp_instance: FastMCP):
 
         Args:
             token: User's API token.
+            username: The user's namespace.
             space_name: Name of the space.
         """
         api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
 
         if not token:
             return "Error: The 'token' parameter is required."
+        if not username:
+            return "Error: The 'username' parameter is required."
         if not space_name:
             return "Error: The 'space_name' parameter is required."
-
-        try:
-            username = api_get_username_from_token(api_url, api_key, token)
-        except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
 
         try:
             resp = space.delete(
@@ -457,25 +446,20 @@ def register_list_my_space_tool(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="list_my_spaces",
         title="List spaces for a user from CSGHub",
-        description="Retrieve a list of spaces for a specific user from CSGHub. You can control the pagination by specifying the number of items per page and the page number.",
+        description="Retrieve a list of spaces for a specific user from CSGHub. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. You can control the pagination by specifying the number of items per page and the page number.",
         structured_output=True,
     )
-    def list_my_spaces(token: str, per: int = 10, page: int = 1) -> str:
+    def list_my_spaces(token: str, username: str, per: int = 10, page: int = 1) -> str:
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
+        if not username:
+            return "Error: The 'username' parameter is required."
         
         api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
         
         try:
-            username = api_get_username_from_token(api_url, api_key, token)
+            spaces = query_my_spaces(api_url, token, username, per, page)
+            return json.dumps(spaces)
         except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
-        
-        try:
-            evaluations = query_my_spaces(api_url, token, username, per, page)
-            return json.dumps(evaluations)
-        except Exception as e:
-            logger.error(f"Error calling evaluation API: {e}")
+            logger.error(f"Error calling list spaces API: {e}")
             return f"Error: Failed to list spaces. {e}"
