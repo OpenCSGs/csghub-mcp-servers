@@ -22,10 +22,7 @@ from .utils import (
 
 logger = logging.getLogger(__name__)
 
-# stg
-cluster_id = os.getenv("CLUSTER_ID", "1b25151b-690b-42a4-b18b-aa1c86bd2696")
-# prd
-# cluster_id = os.getenv("CLUSTER_ID", "ab45d3ba-a2ff-466e-887a-b2e5c0c070c5")
+cluster_id = os.getenv("CLUSTER_ID", "ab45d3ba-a2ff-466e-887a-b2e5c0c070c5")
 
 def register_finetune_job_tools(mcp_instance: FastMCP):
     register_finetune_job_list(mcp_instance=mcp_instance)
@@ -74,14 +71,7 @@ def register_finetune_job_control(mcp_instance: FastMCP):
     def get_finetune_job_by_id(token: str, id: int) -> str:
         api_url = get_csghub_api_endpoint()
         response_data = api_get_finetune_job(api_url, token, id)
-        json_data = response_data["data"]
-        access_url = ""
-        # status = json_data["status"]
-        # deploy_name = json_data["deploy_name"]
-        # if status.lower() == "running":
-        #     access_url = f"https://opencsg.com/finetune/{model_id}/{deploy_name}/{deploy_id}?tab=pages"
-
-        return json.dumps({"data": json_data, "access_url": access_url})
+        return json.dumps(response_data)
     
     @mcp_instance.tool(
         name="delete_finetune_job_by_id",
@@ -108,8 +98,8 @@ def register_query_finetune_job_conditions(mcp_instance: FastMCP):
         run_json_data = api_get_available_runtime_frameworks_by_deploy_type(api_url, token, deploy_type)
 
         return json.dumps({
-            "resources_data": res_json_data["data"],
-            "runtime_frameworks_data": run_json_data["data"]
+            "resources_data": res_json_data,
+            "runtime_frameworks_data": run_json_data
         })
 
 def register_finetune_job_create(mcp_instance: FastMCP):
@@ -136,7 +126,7 @@ def register_finetune_job_create(mcp_instance: FastMCP):
             epochs=epochs,
             learning_rate=learning_rate,
         )
-        return json.dumps({"data": json_data["data"]})
+        return json.dumps(json_data)
 
 def register_check_model_dataset(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -148,7 +138,7 @@ def register_check_model_dataset(mcp_instance: FastMCP):
     def check_model_by_model_id(token: str, model_id: str) -> str:
         api_url = get_csghub_api_endpoint()
         json_data = api_get_model_detail(api_url, token, model_id)
-        return json.dumps({"data": json_data["data"]})
+        return json.dumps(json_data)
 
     @mcp_instance.tool(
         name="check_dataset_by_dataset_id",
@@ -159,5 +149,5 @@ def register_check_model_dataset(mcp_instance: FastMCP):
     def check_dataset_by_dataset_id(token: str, dataset_id: str) -> str:
         api_url = get_csghub_api_endpoint()
         json_data = api_get_dataset_detail(api_url, token, dataset_id)
-        return json.dumps({"data": json_data["data"]})
+        return json.dumps(json_data)
 
