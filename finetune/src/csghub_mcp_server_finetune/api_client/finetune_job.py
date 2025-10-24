@@ -5,7 +5,7 @@ import os
 
 logger = logging.getLogger(__name__)
 
-def api_list_finetune_jobs(api_url: str, token: str, username: str, per: int = 10, page: int = 1) -> dict:
+def api_list_finetune_jobs(api_url: str, web_addr: str, token: str, username: str, per: int = 10, page: int = 1) -> dict:
     headers = {"Authorization": f"Bearer {token}"}
     params = {
         "per": per,
@@ -23,8 +23,7 @@ def api_list_finetune_jobs(api_url: str, token: str, username: str, per: int = 1
     res_list = json_data["data"] if json_data and "data" in json_data else []
     if not isinstance(res_list, list):
         return res_data
-    
-    web_addr = os.getenv("CSGHUB_WEB_ENDPOINT")
+
     for res in res_list:
         finetuned_model_name = res["result_url"]
         res_data.append({
@@ -36,7 +35,7 @@ def api_list_finetune_jobs(api_url: str, token: str, username: str, per: int = 1
 
     return res_data
 
-def api_get_finetune_job(api_url: str, token: str, job_id: int) -> dict:
+def api_get_finetune_job(api_url: str, web_addr: str, token: str, job_id: int) -> dict:
     headers = {"Authorization": f"Bearer {token}"}
     url = f"{api_url}/api/v1/finetunes/{job_id}"
     response = requests.get(url, headers=headers)
@@ -46,7 +45,7 @@ def api_get_finetune_job(api_url: str, token: str, job_id: int) -> dict:
     response.raise_for_status()
     json_data = response.json()
     res_data = {}
-    web_addr = os.getenv("CSGHUB_WEB_ENDPOINT")
+    
     if json_data and "data" in json_data:
         job_data = json_data["data"]
         finetuned_model_name = job_data["result_url"]
