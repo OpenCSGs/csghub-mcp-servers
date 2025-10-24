@@ -13,12 +13,6 @@ from .api_client import (
     api_get_finetune_job,
     api_delete_finetune_job,
     api_create_finetune_job,
-
-)
-from .utils import (
-    get_csghub_api_endpoint, 
-    get_csghub_api_key,
-    get_csghub_web_endpoint,
 )
 
 logger = logging.getLogger(__name__)
@@ -44,12 +38,8 @@ def register_finetune_job_list(mcp_instance: FastMCP):
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
         
-        api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
-        web_addr = get_csghub_web_endpoint()
-        
         try:
-            username = api_get_username_from_token(api_url, api_key, token)
+            username = api_get_username_from_token(token)
         except Exception as e:
             logger.error(f"Error calling user token API: {e}")
             return f"Error: Failed to get username. {e}"
@@ -57,7 +47,7 @@ def register_finetune_job_list(mcp_instance: FastMCP):
         logger.info(f"Listing finetune jobs for user: {username}")
         
         try:
-            finetunes = api_list_finetune_jobs(api_url, web_addr, token, username, per, page)
+            finetunes = api_list_finetune_jobs(token, username, per, page)
             return json.dumps(finetunes)
         except Exception as e:
             logger.error(f"Error calling finetune API: {e}")
@@ -71,10 +61,7 @@ def register_finetune_job_control(mcp_instance: FastMCP):
         structured_output=True,
     )
     def get_finetune_job_by_id(token: str, id: int) -> str:
-        api_url = get_csghub_api_endpoint()
-        web_addr = get_csghub_web_endpoint()
-
-        response_data = api_get_finetune_job(api_url, web_addr, token, id)
+        response_data = api_get_finetune_job(token, id)
         return json.dumps(response_data)
     
     @mcp_instance.tool(
@@ -84,8 +71,7 @@ def register_finetune_job_control(mcp_instance: FastMCP):
         structured_output=True,
     )
     def delete_finetune_job_by_id(token: str, id: int) -> str:
-        api_url = get_csghub_api_endpoint()
-        response_data = api_delete_finetune_job(api_url, token, id)
+        response_data = api_delete_finetune_job(token, id)
         return json.dumps(response_data)
 
 def register_query_finetune_job_conditions(mcp_instance: FastMCP):
@@ -96,10 +82,9 @@ def register_query_finetune_job_conditions(mcp_instance: FastMCP):
         structured_output=True,
     )
     def query_avai_res_and_frameworks_for_finetune_job(token: str) -> str:
-        api_url = get_csghub_api_endpoint()
         deploy_type = "6"
-        res_json_data = api_get_available_resources(api_url, cluster_id, deploy_type)
-        run_json_data = api_get_available_runtime_frameworks_by_deploy_type(api_url, token, deploy_type)
+        res_json_data = api_get_available_resources(cluster_id, deploy_type)
+        run_json_data = api_get_available_runtime_frameworks_by_deploy_type(token, deploy_type)
 
         return json.dumps({
             "resources_data": res_json_data,
@@ -119,9 +104,7 @@ def register_finetune_job_create(mcp_instance: FastMCP):
         resource_id: int, runtime_framework_id: int,
         epochs: int = 1, learning_rate: float = 0.0001
     ) -> str:
-        api_url = get_csghub_api_endpoint()
         json_data = api_create_finetune_job(
-            api_url=api_url,
             token=token,
             model_id=model_id,
             dataset_id=dataset_id,
@@ -140,8 +123,7 @@ def register_check_model_dataset(mcp_instance: FastMCP):
         structured_output=True,
     )
     def check_model_by_model_id(token: str, model_id: str) -> str:
-        api_url = get_csghub_api_endpoint()
-        json_data = api_get_model_detail(api_url, token, model_id)
+        json_data = api_get_model_detail(token, model_id)
         return json.dumps(json_data)
 
     @mcp_instance.tool(
@@ -151,7 +133,6 @@ def register_check_model_dataset(mcp_instance: FastMCP):
         structured_output=True,
     )
     def check_dataset_by_dataset_id(token: str, dataset_id: str) -> str:
-        api_url = get_csghub_api_endpoint()
-        json_data = api_get_dataset_detail(api_url, token, dataset_id)
+        json_data = api_get_dataset_detail(token, dataset_id)
         return json.dumps(json_data)
 

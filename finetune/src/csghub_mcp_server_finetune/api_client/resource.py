@@ -1,11 +1,14 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
-def api_get_available_resources(api_url: str, cluster_id: str, deploy_type: str) -> dict:
+def api_get_available_resources(cluster_id: str, deploy_type: str) -> dict:
+    config = get_csghub_config()
+
     headers = {"Content-Type": "application/json"}
-    url = f"{api_url}/api/v1/space_resources?cluster_id={cluster_id}&deploy_type={deploy_type}"
+    url = f"{config.api_endpoint}/api/v1/space_resources?cluster_id={cluster_id}&deploy_type={deploy_type}"
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get avai resources on {url}: {response.text}")
@@ -26,9 +29,8 @@ def api_get_available_resources(api_url: str, cluster_id: str, deploy_type: str)
     return res_data
 
 if __name__ == "__main__":
-    api_url = "https://hub.opencsg-stg.com"
     cluster_id = "1b25151b-690b-42a4-b18b-aa1c86bd2696"
     deploy_type = "6"
-    result = api_get_available_resources(api_url, cluster_id, deploy_type)
+    result = api_get_available_resources(cluster_id, deploy_type)
     print(result)
 
