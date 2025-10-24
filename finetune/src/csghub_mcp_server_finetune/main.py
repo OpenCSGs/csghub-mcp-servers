@@ -5,13 +5,14 @@ import logging
 from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 from .arguments import setup_argparse
-from .finetune import register_finetune_tools
+
+from .finetune_job import register_finetune_job_tools
 
 logger = logging.getLogger(__name__)
 
 mcp = FastMCP("CSGHub-Finetune-MCP-Server", host="0.0.0.0", port=8000, log_level="INFO")
 
-register_finetune_tools(mcp)
+register_finetune_job_tools(mcp)
 
 def signal_handler(sig, frame):
     logger.info("cleaning resource")

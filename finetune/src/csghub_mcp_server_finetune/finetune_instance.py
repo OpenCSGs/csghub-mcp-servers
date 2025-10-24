@@ -34,14 +34,15 @@ def register_finetune_tools(mcp_instance: FastMCP):
 def register_finetune_list(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
-        name="list_finetune_services",
-        title="List finetune services for a user from CSGHub",
-        description="Retrieve a list of finetune services for a specific user from CSGHub. You can control the pagination by specifying the number of items per page and the page number.",
+        name="list_finetune_instance",
+        title="List finetune instance with UI for a user from CSGHub with user access token",
+        description="Retrieve a list of finetune instance with UI for a specific user from CSGHub. You can control the pagination by specifying the number of items per page and the page number.",
         structured_output=True,
     )
-    def list_finetune(token: str, per: int = 10, page: int = 1) -> str:
+    def list_finetune_instance(token: str, per: int = 10, page: int = 1) -> str:
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
+        
         api_url = get_csghub_api_endpoint()
         api_key = get_csghub_api_key()
         
@@ -51,7 +52,7 @@ def register_finetune_list(mcp_instance: FastMCP):
             logger.error(f"Error calling user token API: {e}")
             return f"Error: Failed to get username. {e}"
 
-        logger.info(f"Listing finetune services for user: {username}")
+        logger.info(f"Listing finetune jobs for user: {username}")
         
         try:
             finetunes = api_list_finetunes(api_url, token, username, per, page)
@@ -63,12 +64,12 @@ def register_finetune_list(mcp_instance: FastMCP):
 def register_finetune_query(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
-        name="get_finetune_status_by_deploy_id",
-        title="Get Finetune deployment details and status by model ID and deploy ID",
-        description="Retrieve the finetune deployment details and status by using model ID and a specific deploy ID from CSGHub with user access token. This is useful for checking the status of a deployed model's finetune instance service.",
+        name="get_finetune_status_by_id",
+        title="Get Finetune deployment details and status by job ID",
+        description="Retrieve the finetune job details and status by using a specific ID from CSGHub with user access token. This is useful for checking the status of a deployed model's finetune job.",
         structured_output=True,
     )
-    def get_finetuen_status_by_deploy_id(token: str, model_id: str, deploy_id: int) -> str:
+    def get_finetuen_status_by_id(token: str, model_id: str, deploy_id: int) -> str:
         api_url = get_csghub_api_endpoint()
         response_data = api_get_finetune_status(api_url, token, model_id, deploy_id)
         json_data = response_data["data"]
@@ -156,6 +157,7 @@ def register_finetune_control_tools(mcp_instance: FastMCP):
         return json.dumps(res_json_data)  
 
 def register_check_model(mcp_instance: FastMCP):
+    
     @mcp_instance.tool(
         name="check_model_by_model_id",
         title="Get or search model detail and check model by model ID",
@@ -166,3 +168,4 @@ def register_check_model(mcp_instance: FastMCP):
         api_url = get_csghub_api_endpoint()
         json_data = api_get_model_detail(api_url, model_id)
         return json.dumps({"data": json_data["data"]})
+
