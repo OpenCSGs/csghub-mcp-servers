@@ -17,7 +17,8 @@ from .api_client import (
 )
 from .utils import (
     get_csghub_api_endpoint, 
-    get_csghub_api_key
+    get_csghub_api_key,
+    get_csghub_web_endpoint,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,6 +46,7 @@ def register_finetune_job_list(mcp_instance: FastMCP):
         
         api_url = get_csghub_api_endpoint()
         api_key = get_csghub_api_key()
+        web_addr = get_csghub_web_endpoint()
         
         try:
             username = api_get_username_from_token(api_url, api_key, token)
@@ -55,7 +57,7 @@ def register_finetune_job_list(mcp_instance: FastMCP):
         logger.info(f"Listing finetune jobs for user: {username}")
         
         try:
-            finetunes = api_list_finetune_jobs(api_url, token, username, per, page)
+            finetunes = api_list_finetune_jobs(api_url, web_addr, token, username, per, page)
             return json.dumps(finetunes)
         except Exception as e:
             logger.error(f"Error calling finetune API: {e}")
@@ -70,7 +72,9 @@ def register_finetune_job_control(mcp_instance: FastMCP):
     )
     def get_finetune_job_by_id(token: str, id: int) -> str:
         api_url = get_csghub_api_endpoint()
-        response_data = api_get_finetune_job(api_url, token, id)
+        web_addr = get_csghub_web_endpoint()
+
+        response_data = api_get_finetune_job(api_url, web_addr, token, id)
         return json.dumps(response_data)
     
     @mcp_instance.tool(
