@@ -1,11 +1,14 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
-def api_get_model_detail(api_url: str, token: str, model_id: str) -> dict:
+def api_get_model_detail(token: str, model_id: str) -> dict:
+    config = get_csghub_config()
+
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {token}"}
-    url = f"{api_url}/api/v1/models/{model_id}"
+    url = f"{config.api_endpoint}/api/v1/models/{model_id}"
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get model detail on {url}: {response.text}")
@@ -21,8 +24,7 @@ def api_get_model_detail(api_url: str, token: str, model_id: str) -> dict:
     return res_data
 
 if __name__ == "__main__":
-    api_url = "https://hub.opencsg-stg.com"
     token = ""
     model_id = "wanghh2003/Qwen3-0.6B"
-    result = api_get_model_detail(api_url, token, model_id)
+    result = api_get_model_detail(token, model_id)
     print(result)

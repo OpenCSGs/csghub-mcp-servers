@@ -1,11 +1,14 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
-def api_get_available_runtime_frameworks(api_url: str, model_id: str, deploy_type: str) -> dict:
+def api_get_available_runtime_frameworks(model_id: str, deploy_type: str) -> dict:
+    config = get_csghub_config()
+
     headers = {"Content-Type": "application/json"}
-    url = f"{api_url}/api/v1/models/{model_id}/runtime_framework_v2?deploy_type={deploy_type}"
+    url = f"{config.api_endpoint}/api/v1/models/{model_id}/runtime_framework_v2?deploy_type={deploy_type}"
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get avai resources on {url}: {response.text}")
@@ -27,9 +30,11 @@ def api_get_available_runtime_frameworks(api_url: str, model_id: str, deploy_typ
 
     return res_data
 
-def api_get_available_runtime_frameworks_by_deploy_type(api_url: str, token: str, deploy_type: str) -> dict:
+def api_get_available_runtime_frameworks_by_deploy_type(token: str, deploy_type: str) -> dict:
+    config = get_csghub_config()
+
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {token}"}
-    url = f"{api_url}/api/v1/models/runtime_framework?deploy_type={deploy_type}"
+    url = f"{config.api_endpoint}/api/v1/models/runtime_framework?deploy_type={deploy_type}"
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get avai resources on {url}: {response.text}")
@@ -49,9 +54,8 @@ def api_get_available_runtime_frameworks_by_deploy_type(api_url: str, token: str
     return res_data
 
 if __name__ == "__main__":
-    api_url = "https://hub.opencsg-stg.com"
     token = ""
     deploy_type = "6"
-    result = api_get_available_runtime_frameworks_by_deploy_type(api_url, token, deploy_type)
+    result = api_get_available_runtime_frameworks_by_deploy_type(token, deploy_type)
     # result = api_get_available_runtime_frameworks(api_url, "Qwen/Qwen3-0.6B", "2")
     print(result)
