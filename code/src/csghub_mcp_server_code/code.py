@@ -8,10 +8,6 @@ from .api_client import (
     api_create_code,
     api_delete_code,
 )
-from .utils import (
-    get_csghub_api_endpoint, 
-    get_csghub_api_key
-)
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +28,8 @@ def register_code_list(mcp_instance: FastMCP):
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
         
-        api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
-        
         try:
-            username = api_get_username_from_token(api_url, api_key, token)
+            username = api_get_username_from_token(token)
         except Exception as e:
             logger.error(f"Error calling user token API: {e}")
             return f"Error: Failed to get username. {e}"
@@ -44,7 +37,7 @@ def register_code_list(mcp_instance: FastMCP):
         logger.info(f"Listing user codes for user: {username}")
         
         try:
-            codes = api_list_codes(api_url, token, username, per, page)
+            codes = api_list_codes(token, username, per, page)
             return json.dumps(codes)
         except Exception as e:
             logger.error(f"Error calling codes API: {e}")
@@ -57,10 +50,9 @@ def register_code_query(mcp_instance: FastMCP):
         description="Retrieve the code repo details by a specific path from CSGHub with user access token. This is useful for checking the details of a code repo that has been submitted to the CSGHub service.",
         structured_output=True,
     )
-    def get_code_detail_by_path(token: str, code_path: str) -> str:
-        api_url = get_csghub_api_endpoint()
-        json_data = api_get_code_details(api_url=api_url, token=token, code_path=code_path)
-        return json.dumps({"data": json_data["data"]})
+    def get_code_detail_by_path(token: str, code_id: str) -> str:
+        json_data = api_get_code_details(token=token, code_id=code_id)
+        return json.dumps(json_data)
 
 def register_code_creation(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -76,17 +68,13 @@ def register_code_creation(mcp_instance: FastMCP):
         readme: str = "",
         description: str = "",
     ) -> str:
-        api_key = get_csghub_api_key()
-        api_url = get_csghub_api_endpoint()
-
         try:
-            username = api_get_username_from_token(api_url, api_key, token)
+            username = api_get_username_from_token(token)
         except Exception as e:
             logger.error(f"Error calling user token API: {e}")
             return f"Error: Failed to get username. {e}"
 
         json_data = api_create_code(
-            api_url=api_url, 
             token=token,
             namespace=username,
             code_name=code_name,
@@ -94,18 +82,16 @@ def register_code_creation(mcp_instance: FastMCP):
             readme=readme,
             description=description,
         )
-        access_url = f"https://opencsg.com/codes/{username}/{code_name}"
-        return json.dumps({"data": json_data["data"], "access_url": access_url})
+        return json.dumps(json_data)
 
 def register_code_delete(mcp_instance: FastMCP):
     @mcp_instance.tool(
-        name="delete_code_by_path",
-        title="Delete code repo by code path",
-        description="Delete the code repo by a specific path from CSGHub with user access token.",
+        name="delete_code_by_id",
+        title="Delete code repo by code id",
+        description="Delete the code repo by a specific id from CSGHub with user access token.",
         structured_output=True,
     )
-    def delete_code_by_path(token: str, code_path: str) -> str:
-        api_url = get_csghub_api_endpoint()
-        json_data = api_delete_code(api_url=api_url, token=token, code_path=code_path)
+    def delete_code_by_path(token: str, code_id: str) -> str:
+        json_data = api_delete_code(token=token, code_id=code_id)
         return json.dumps(json_data)
 

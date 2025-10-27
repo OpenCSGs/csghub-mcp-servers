@@ -88,7 +88,7 @@ def api_get_model_details(token: str, model_id: str) -> dict:
     response.raise_for_status()
     json_data = response.json()
     res_data = {}
-    # print(json_data)
+
     if json_data and "data" in json_data:
         res = json_data["data"]
         access_url = f"{config.web_endpoint}/models/{res['path']}"
@@ -130,9 +130,8 @@ def api_create_model(
 
     response.raise_for_status()
     json_data = response.json()
-    print(json_data)
-    res_data = {}   
-    # print(json_data)
+
+    res_data = {}
     if json_data and "data" in json_data:
         res = json_data["data"]
         access_url = f"{config.web_endpoint}/models/{res['path']}"
