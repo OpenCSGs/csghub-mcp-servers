@@ -1,9 +1,10 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
-def api_top_download_models(api_url: str, num: int) -> dict:
+def api_top_download_models(num: int) -> dict:
     """Get top downloaded models.
     
     Args:
@@ -13,6 +14,8 @@ def api_top_download_models(api_url: str, num: int) -> dict:
     Returns:
         Top models data
     """
+    config = get_csghub_config()
+
     headers = {"Content-Type": "application/json"}
     params = {
         "page": 1,
@@ -20,40 +23,84 @@ def api_top_download_models(api_url: str, num: int) -> dict:
         "search": "",
         "sort": "most_download"
     }
-    url = f"{api_url}/api/v1/models"
+    url = f"{config.api_endpoint}/api/v1/models"
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to get top {num} downloaded models on {url}: {response.text}")
     
     response.raise_for_status()
-    return response.json()
+    json_data = response.json()
 
-def api_list_user_models(api_url: str, token: str, username: str, per: int = 10, page: int = 1) -> dict:
+    res_data = []
+    res_list = json_data["data"] if json_data and "data" in json_data else []
+    if not isinstance(res_list, list):
+        return res_data
+
+    for res in res_list:
+        access_url = f"{config.web_endpoint}/models/{res['path']}"
+        git_clone_cmd = f"git clone {res['repository']['http_clone_url']}"
+        res_data.append({
+            "model_id": res["path"],
+            "downloads": res["downloads"],
+            "git_clone_command": git_clone_cmd,
+            "access_url": access_url,
+        })
+
+    return res_data
+
+def api_list_user_models(token: str, username: str, per: int = 10, page: int = 1) -> dict:
+    config = get_csghub_config()
+
     headers = {"Authorization": f"Bearer {token}"}
     params = {
         "per": per,
         "page": page,
     }
-    url = f"{api_url}/api/v1/user/{username}/models"
+    url = f"{config.api_endpoint}/api/v1/user/{username}/models"
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list user models on {url}: {response.text}")
 
     response.raise_for_status()
-    return response.json()
+    json_data = response.json()
 
-def api_get_model_details(api_url: str, token: str, model_path: str) -> dict:
+    res_data = []
+    res_list = json_data["data"] if json_data and "data" in json_data else []
+    if not isinstance(res_list, list):
+        return res_data
+
+    for res in res_list:
+        res_data.append({
+            "model_id": res["path"]
+        })
+
+    return res_data
+
+def api_get_model_details(token: str, model_id: str) -> dict:
+    config = get_csghub_config()
+
     headers = {"Authorization": f"Bearer {token}"}
-    url = f"{api_url}/api/v1/models/{model_path}"
+    url = f"{config.api_endpoint}/api/v1/models/{model_id}"
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get model details on {url}: {response.text}")
 
     response.raise_for_status()
-    return response.json()
+    json_data = response.json()
+    res_data = {}
+    # print(json_data)
+    if json_data and "data" in json_data:
+        res = json_data["data"]
+        access_url = f"{config.web_endpoint}/models/{res['path']}"
+        res_data = {
+            "model_id": res["path"],
+            "clone_address": res["repository"],
+            "web_access_url": access_url,
+        }
+
+    return res_data
 
 def api_create_model(
-        api_url: str, 
         token: str, 
         namespace: str,
         model_name: str,
@@ -61,6 +108,8 @@ def api_create_model(
         readme: str = "", 
         description: str = "",
 ) -> dict:
+    config = get_csghub_config()
+
     headers = {
         "Authorization": f"Bearer {token}", 
         "Content-Type": "application/json"
@@ -74,20 +123,34 @@ def api_create_model(
         "private": True,
         "readme": readme,
     }
-    url = f"{api_url}/api/v1/models"
+    url = f"{config.api_endpoint}/api/v1/models"
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
         logger.error(f"failed to create model repo: {data} on {url} :{response.text}")
 
     response.raise_for_status()
-    return response.json()
+    json_data = response.json()
+    print(json_data)
+    res_data = {}   
+    # print(json_data)
+    if json_data and "data" in json_data:
+        res = json_data["data"]
+        access_url = f"{config.web_endpoint}/models/{res['path']}"
+        res_data = {
+            "model_id": res["path"],
+            "web_access_url": access_url,
+        }
+    return res_data
 
-def api_delete_model(api_url: str, token: str, model_path: str) -> dict:
+def api_delete_model(token: str, model_id: str) -> dict:
+    config = get_csghub_config()
+
     headers = {"Authorization": f"Bearer {token}"}
-    url = f"{api_url}/api/v1/models/{model_path}"
+    url = f"{config.api_endpoint}/api/v1/models/{model_id}"
     response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to delete model on {url}: {response.text}")
 
     response.raise_for_status()
     return response.json()
+
