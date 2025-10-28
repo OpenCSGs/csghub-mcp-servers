@@ -98,9 +98,9 @@ def api_create_finetune_job(token: str,
     if response.status_code != 200 and response.status_code != 500:
         logger.error(f"failed to create finetune job on {url}: {response.text}")
 
-    if response.status_code == 500:
-        logger.warning(f"failed to create finetune job on {url}: {response.text}")
-        return {"msg": "OK"}
+    # if response.status_code == 500:
+    #     logger.warning(f"failed to create finetune job on {url}: {response.text}")
+    #     return {"msg": "OK"}
 
     response.raise_for_status()
     json_data = response.json()
