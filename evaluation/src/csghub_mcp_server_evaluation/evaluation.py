@@ -5,9 +5,6 @@ from .api_client import (
     api_get_username_from_token,
 )
 from .api_client import evaluation, model, dataset, cluster, space_resources
-from .utils import (
-    get_csghub_api_endpoint, 
-)
 
 logger = logging.getLogger(__name__)
 
@@ -24,16 +21,12 @@ def register_evaluation_list(mcp_instance: FastMCP):
         description="Retrieve a list of evaluation services for a specific user from CSGHub. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. You can control the pagination by specifying the number of items per page and the page number.",
         structured_output=True,
     )
-    def list_evaluation(token: str, username: str, per: int = 10, page: int = 1) -> str:
+    def list_evaluation(token: str, per: int = 10, page: int = 1) -> str:
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
-        if not username:
-            return "Error: The 'username' parameter is required."
-        
-        api_url = get_csghub_api_endpoint()
         
         try:
-            evaluations = evaluation.list_evaluations(api_url, token, username, per, page)
+            evaluations = evaluation.list_evaluations(token, per, page)
             return json.dumps(evaluations)
         except Exception as e:
             logger.error(f"Error calling evaluation API: {e}")
@@ -48,9 +41,8 @@ def register_evaluation_query(mcp_instance: FastMCP):
         structured_output=True,
     )
     def get_evaluation_by_id(token: str, id: int) -> str:
-        api_url = get_csghub_api_endpoint()
-        json_data = evaluation.get_evaluation_details(api_url, token, id)
-        return json.dumps({"data": json_data["data"]})
+        json_data = evaluation.get_evaluation_details(token, id)
+        return json.dumps(json_data)
 
 def register_evaluation_create(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -82,11 +74,8 @@ def register_evaluation_create(mcp_instance: FastMCP):
         if not share_mode and resource_id is None:
             return "Error: `resource_id` is required when `share_mode` is `False`. Please provide a `resource_id` and try again."
         
-        api_url = get_csghub_api_endpoint()
-        
         try:
-            resp = evaluation.create_evaluation(api_url,
-                                               token,
+            resp = evaluation.create_evaluation(token,
                                                task_name,
                                                model_ids,
                                                runtime_framework_id,
@@ -110,9 +99,8 @@ def register_evaluation_create(mcp_instance: FastMCP):
         structured_output=True,
     )
     def get_model_runtime_framework(token: str, model_id: str) -> str:
-        api_url = get_csghub_api_endpoint()
-        json_data = model.get_model_runtime_framework(api_url, token, model_id, deploy_type=4)
-        return json.dumps({"data": json_data["data"]})
+        json_data = model.get_model_runtime_framework(token, model_id, deploy_type=4)
+        return json.dumps(json_data)
 
     @mcp_instance.tool(
         name="get_opencompass_datasets",
@@ -123,11 +111,9 @@ def register_evaluation_create(mcp_instance: FastMCP):
     def get_opencompass_datasets(token: str) -> str:
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
-        
-        api_url = get_csghub_api_endpoint()
-        
+           
         try:
-            datasets = dataset.get_opencompass_datasets(api_url, token)
+            datasets = dataset.get_opencompass_datasets(token)
             return json.dumps(datasets)
         except Exception as e:
             logger.error(f"Error calling get opencompass datasets API: {e}")
@@ -143,10 +129,8 @@ def register_evaluation_create(mcp_instance: FastMCP):
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
         
-        api_url = get_csghub_api_endpoint()
-        
         try:
-            models = model.get_opencompass_models(api_url, token)
+            models = model.get_opencompass_models(token)
             return json.dumps(models)
         except Exception as e:
             logger.error(f"Error calling get opencompass models API: {e}")
@@ -162,10 +146,8 @@ def register_evaluation_create(mcp_instance: FastMCP):
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
         
-        api_url = get_csghub_api_endpoint()
-        
         try:
-            clusters = cluster.get_clusters(api_url, token)
+            clusters = cluster.get_clusters(token)
             return json.dumps(clusters)
         except Exception as e:
             logger.error(f"Error calling get clusters API: {e}")
@@ -181,10 +163,8 @@ def register_evaluation_create(mcp_instance: FastMCP):
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
         
-        api_url = get_csghub_api_endpoint()
-        
         try:
-            resources = space_resources.get_space_resources(api_url, token, cluster_id, deploy_type=4)
+            resources = space_resources.get_space_resources(token, cluster_id, deploy_type=4)
             return json.dumps(resources)
         except Exception as e:
             logger.error(f"Error calling get space resources API: {e}")
@@ -200,9 +180,8 @@ def register_evaluation_delete(mcp_instance: FastMCP):
     def delete_evaluation_by_id(token: str, id: int) -> str:
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
-        api_url = get_csghub_api_endpoint()
         try:
-            resp = evaluation.delete_evaluation(api_url, token, id)
+            resp = evaluation.delete_evaluation(token, id)
             if not resp:
                 return json.dumps({"message": "Evaluation deleted successfully"})
             return json.dumps(resp)
