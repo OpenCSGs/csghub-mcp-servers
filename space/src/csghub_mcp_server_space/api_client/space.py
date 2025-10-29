@@ -1,9 +1,10 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
-def api_get_top_download_spaces(api_url: str, num: int) -> dict:
+def api_get_top_download_spaces(num: int) -> dict:
     """Get top downloaded spaces.
     
     Args:
@@ -13,6 +14,7 @@ def api_get_top_download_spaces(api_url: str, num: int) -> dict:
     Returns:
         Top spaces data
     """
+    config = get_csghub_config()
     headers = {"Content-Type": "application/json"}
     params = {
         "page": 1,
@@ -20,7 +22,7 @@ def api_get_top_download_spaces(api_url: str, num: int) -> dict:
         "search": "",
         "sort": "most_download"
     }
-    url = f"{api_url}/api/v1/spaces"
+    url = f"{config.api_endpoint}/api/v1/spaces"
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to get spaces on {url}: {response.text}")
@@ -30,7 +32,6 @@ def api_get_top_download_spaces(api_url: str, num: int) -> dict:
 
     
 def start(
-    api_url: str,
     token: str,
     namespace: str,
     space_name: str
@@ -47,7 +48,8 @@ def start(
     Returns:
         Response data.
     """
-    url = f"{api_url}/api/v1/spaces/{namespace}/{space_name}/run"
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/spaces/{namespace}/{space_name}/run"
     headers = {
         "Authorization": f"Bearer {token}"
     }
@@ -59,7 +61,6 @@ def start(
     return response.json()
 
 def create(
-    api_url: str,
     token: str,
     name: str,
     namespace: str,
@@ -91,7 +92,8 @@ def create(
     Returns:
         New space data
     """
-    url = f"{api_url}/api/v1/spaces"
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/spaces"
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
@@ -116,7 +118,6 @@ def create(
     return response.json()
 
 def stop(
-    api_url: str,
     token: str,
     namespace: str,
     space_name: str
@@ -133,7 +134,8 @@ def stop(
     Returns:
         Response data.
     """
-    url = f"{api_url}/api/v1/spaces/{namespace}/{space_name}/stop"
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/spaces/{namespace}/{space_name}/stop"
     headers = {
         "Authorization": f"Bearer {token}"
     }
@@ -145,7 +147,6 @@ def stop(
     return response.json()
 
 def delete(
-    api_url: str,
     token: str,
     namespace: str,
     repo_name: str
@@ -161,7 +162,8 @@ def delete(
     Returns:
         Response data
     """
-    url = f"{api_url}/api/v1/spaces/{namespace}/{repo_name}"
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/spaces/{namespace}/{repo_name}"
     headers = {
         "Authorization": f"Bearer {token}"
     }
@@ -172,7 +174,7 @@ def delete(
     response.raise_for_status()
     return response.json()
 
-def query_my_spaces(api_url: str, token: str, username: str, per: int = 10, page: int = 1) -> dict:
+def query_my_spaces(token: str, username: str, per: int = 10, page: int = 1) -> dict:
     """List spaces of a user.
     
     Args:
@@ -185,12 +187,13 @@ def query_my_spaces(api_url: str, token: str, username: str, per: int = 10, page
     Returns:
         Space services data
     """
+    config = get_csghub_config()
     headers = {"Authorization": f"Bearer {token}"}
     params = {
         "per": per,
         "page": page,
     }
-    url = f"{api_url}/api/v1/user/{username}/spaces"
+    url = f"{config.api_endpoint}/api/v1/user/{username}/spaces"
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list user spaces on {url}: {response.text}")

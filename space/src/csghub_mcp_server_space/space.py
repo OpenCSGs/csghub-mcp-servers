@@ -9,9 +9,6 @@ from .api_client import (
     space, repo, space_resources, cluster,
     query_my_spaces,
 )
-from .utils import (
-    get_csghub_api_endpoint
-)
 
 logger = logging.getLogger(__name__)
 
@@ -74,12 +71,10 @@ In response, ["namespace"]["path"] can be used as namespace for other tool""",
             env: Environment variables.
             secrets: Secrets for the space.
         """
-        api_url = get_csghub_api_endpoint()
         
         resp = {}
         try:
             create_resp = space.create(
-                api_url=api_url,
                 token=token,
                 name=name,
                 namespace=namespace,
@@ -112,7 +107,6 @@ iface.launch()'''
                 try:
                     encoded_content = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
                     upload_resp = repo.upload_file(
-                        api_url=api_url,
                         token=token,
                         namespace=namespace,
                         repo_name=name,
@@ -128,7 +122,6 @@ iface.launch()'''
                 
                 try:
                     run_resp = space.start(
-                        api_url=api_url,
                         token=token,
                         namespace=namespace,
                         space_name=name,
@@ -160,7 +153,6 @@ iface.launch()'''
             token: User's API token.
             cluster_id: ID of the cluster.
         """
-        api_url = get_csghub_api_endpoint()
 
         if not token:
             return "Error: The 'token' parameter is required."
@@ -168,7 +160,7 @@ iface.launch()'''
         try:
             final_cluster_id = cluster_id
             if not final_cluster_id:
-                clusters_resp = cluster.get_clusters(api_url=api_url, token=token)
+                clusters_resp = cluster.get_clusters(token=token)
                 clusters = clusters_resp.get('data', [])
                 if clusters and len(clusters) > 0:
                     final_cluster_id = clusters[0].get('id')
@@ -176,7 +168,6 @@ iface.launch()'''
                     return "Error: No available clusters found."
 
             resp = space_resources.get_space_resources(
-                api_url=api_url,
                 token=token,
                 cluster_id=final_cluster_id,
                 deploy_type=0
@@ -201,13 +192,12 @@ iface.launch()'''
         Args:
             token: User's API token.
         """
-        api_url = get_csghub_api_endpoint()
 
         if not token:
             return "Error: The 'token' parameter is required."
 
         try:
-            resp = cluster.get_clusters(api_url=api_url, token=token)
+            resp = cluster.get_clusters(token=token)
             return json.dumps(resp)
         except Exception as e:
             logger.error(f"Error calling get clusters API: {e}")
@@ -246,7 +236,6 @@ iface.launch()""",
             file_content: The raw content of the file to upload. Defaults to a simple Gradio app.
             branch: The target branch (default: main).
         """
-        api_url = get_csghub_api_endpoint()
 
         if not token:
             return "Error: The 'token' parameter is required."
@@ -258,7 +247,6 @@ iface.launch()""",
         try:
             encoded_content = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
             resp = repo.upload_file(
-                api_url=api_url,
                 token=token,
                 namespace=username,
                 repo_name=space_name,
@@ -293,7 +281,6 @@ def register_space_start(mcp_instance: FastMCP):
             username: The user's namespace.
             space_name: Name of the space.
         """
-        api_url = get_csghub_api_endpoint()
 
         if not token:
             return "Error: The 'token' parameter is required."
@@ -304,7 +291,6 @@ def register_space_start(mcp_instance: FastMCP):
 
         try:
             resp = space.start(
-                api_url=api_url,
                 token=token,
                 namespace=username,
                 space_name=space_name,
@@ -335,7 +321,6 @@ def register_space_stop(mcp_instance: FastMCP):
             username: The user's namespace.
             space_name: Name of the space.
         """
-        api_url = get_csghub_api_endpoint()
 
         if not token:
             return "Error: The 'token' parameter is required."
@@ -346,7 +331,6 @@ def register_space_stop(mcp_instance: FastMCP):
 
         try:
             resp = space.stop(
-                api_url=api_url,
                 token=token,
                 namespace=username,
                 space_name=space_name,
@@ -377,7 +361,6 @@ def register_space_detail(mcp_instance: FastMCP):
             username: The user's namespace.
             space_name: Name of the space.
         """
-        api_url = get_csghub_api_endpoint()
 
         if not token:
             return "Error: The 'token' parameter is required."
@@ -388,7 +371,6 @@ def register_space_detail(mcp_instance: FastMCP):
 
         try:
             resp = repo.detail(
-                api_url=api_url,
                 token=token,
                 repo_type="space",
                 namespace=username,
@@ -421,7 +403,6 @@ def register_space_delete(mcp_instance: FastMCP):
             username: The user's namespace.
             space_name: Name of the space.
         """
-        api_url = get_csghub_api_endpoint()
 
         if not token:
             return "Error: The 'token' parameter is required."
@@ -432,7 +413,6 @@ def register_space_delete(mcp_instance: FastMCP):
 
         try:
             resp = space.delete(
-                api_url=api_url,
                 token=token,
                 namespace=username,
                 repo_name=space_name,
@@ -455,10 +435,9 @@ def register_list_my_space_tool(mcp_instance: FastMCP):
         if not username:
             return "Error: The 'username' parameter is required."
         
-        api_url = get_csghub_api_endpoint()
         
         try:
-            spaces = query_my_spaces(api_url, token, username, per, page)
+            spaces = query_my_spaces(token, username, per, page)
             return json.dumps(spaces)
         except Exception as e:
             logger.error(f"Error calling list spaces API: {e}")

@@ -1,10 +1,10 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
 def upload_file(
-    api_url: str,
     token: str,
     namespace: str,
     repo_name: str,
@@ -28,7 +28,8 @@ def upload_file(
     Returns:
         Response data
     """
-    url = f"{api_url}/api/v1/{repo_type}s/{namespace}/{repo_name}/raw/{file_path}"
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/{repo_type}s/{namespace}/{repo_name}/raw/{file_path}"
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
@@ -47,7 +48,6 @@ def upload_file(
     return response.json()
 
 def detail(
-    api_url: str,
     token: str,
     repo_type: str,
     namespace: str,
@@ -66,7 +66,8 @@ def detail(
     Returns:
         Response data.
     """
-    url = f"{api_url}/api/v1/{repo_type}s/{namespace}/{repo_name}"
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/{repo_type}s/{namespace}/{repo_name}"
     headers = {
         "Authorization": f"Bearer {token}"
     }

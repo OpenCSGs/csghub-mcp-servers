@@ -1,9 +1,10 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
-def get_space_resources(api_url: str, token: str, cluster_id: str, deploy_type: int) -> dict:
+def get_space_resources(token: str, cluster_id: str, deploy_type: int) -> dict:
     """Get space resources.
     
     Args:
@@ -21,7 +22,8 @@ def get_space_resources(api_url: str, token: str, cluster_id: str, deploy_type: 
     Returns:
         Space resources data
     """
-    url = f"{api_url}/api/v1/space_resources"
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/space_resources"
     headers = {
         "Authorization": f"Bearer {token}"
     }
