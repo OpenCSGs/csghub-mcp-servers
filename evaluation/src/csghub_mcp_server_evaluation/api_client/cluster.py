@@ -1,9 +1,10 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
-def get_clusters(api_url: str, token: str) -> dict:
+def get_clusters(token: str) -> dict:
     """Get cluster information.
     
     Args:
@@ -13,10 +14,29 @@ def get_clusters(api_url: str, token: str) -> dict:
     Returns:
         Cluster data
     """
-    url = f"{api_url}/api/v1/cluster"
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/cluster"
     headers = {
         "Authorization": f"Bearer {token}"
     }
     response = requests.get(url, headers=headers)
     response.raise_for_status()
-    return response.json()
+
+    json_data = response.json()
+
+    res_data = []
+    res_list = json_data["data"] if json_data and "data" in json_data else []
+    if not isinstance(res_list, list):
+        return res_data
+
+    for res in res_list:
+        if res["status"].lower() != "running":
+            continue
+
+        res_data.append({
+            "cluster_id": res["cluster_id"],
+            "region": res["region"],
+            "status": res["status"],
+        })
+
+    return res_data

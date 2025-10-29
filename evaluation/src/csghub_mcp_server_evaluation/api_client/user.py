@@ -1,9 +1,10 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
-def api_get_username_from_token(api_url: str, api_key: str, token: str) -> str:
+def api_get_username_from_token(token: str) -> str:
     """Get username from access token.
     
     Args:
@@ -14,8 +15,9 @@ def api_get_username_from_token(api_url: str, api_key: str, token: str) -> str:
     Returns:
         Username string
     """
-    headers = {"Authorization": f"Bearer {api_key}"}
-    url = f"{api_url}/api/v1/token/{token}"
+    config = get_csghub_config()
+    headers = {"Authorization": f"Bearer {config.api_key}"}
+    url = f"{config.api_endpoint}/api/v1/token/{token}"
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get username on {url}: {response.text}")
