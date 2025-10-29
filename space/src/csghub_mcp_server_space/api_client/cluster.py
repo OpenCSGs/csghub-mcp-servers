@@ -1,9 +1,10 @@
 import requests
 import logging
+from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
 
-def get_clusters(api_url: str, token: str) -> dict:
+def get_clusters(token: str) -> dict:
     """Get cluster information.
     
     Args:
@@ -13,7 +14,8 @@ def get_clusters(api_url: str, token: str) -> dict:
     Returns:
         Cluster data
     """
-    url = f"{api_url}/api/v1/cluster"
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/cluster"
     headers = {
         "Authorization": f"Bearer {token}"
     }
