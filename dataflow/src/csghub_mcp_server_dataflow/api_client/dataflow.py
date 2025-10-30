@@ -99,16 +99,28 @@ def read_templates(token: str, page: int, page_size: int) -> list:
     return res_list
 
 def get_template_by_id(token: str, template_id: int) -> dict | None:
-    res_list = read_templates(token, 1, 1000)
-    for res in res_list:
-        if res["id"] == template_id:
-            return {
-                "template_id": res["id"],
-                "template_name": res["name"],
-                "template_type": res["type"],
-                "template_dsl_text": res["dslText"],
-            }
-    return None
+    config = get_csghub_config()
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    url = f"{config.api_endpoint}/api/v1/dataflow/algo_templates/{template_id}"
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to get dataflow template on {url} :{response.text}")
+
+    template = None
+    json_data = response.json()
+    res_data = json_data["data"] if json_data and "data" in json_data else []
+    if not isinstance(res_data, object):
+        return template
+    
+    template =  {
+        "template_id": res_data["id"],
+        "template_name": res_data["name"],
+        "template_type": res_data["type"],
+        "template_dsl_text": res_data["dslText"],
+    }
+    return template
 
 def api_create_job(
         token: str, 
