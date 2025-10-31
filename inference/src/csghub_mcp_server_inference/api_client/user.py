@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 def api_get_username_from_token(token: str) -> str:
     config = get_csghub_config()
 
-    headers = {"Authorization": f"Bearer {config.api_key}"}
+    headers = {"Content-Type": "application/json"}
     url = f"{config.api_endpoint}/api/v1/token/{token}"
     response = requests.get(url, headers=headers)
     if response.status_code != 200:

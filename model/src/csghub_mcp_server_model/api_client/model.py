@@ -8,7 +8,6 @@ def api_top_download_models(num: int) -> dict:
     """Get top downloaded models.
     
     Args:
-        api_url: CSGHub API base URL
         num: Number of models to retrieve
         
     Returns:

@@ -119,7 +119,7 @@ if __name__ == "__main__":
     token = ""
     model_id = "wanghh2003/Qwen3-0.6B"
     dataset_id = "wanghh2003/finetune-data"
-    # result = api_list_finetune_jobs(api_url, token, "wanghh2003")
-    # result = api_get_finetune_job(api_url, token, 365)
+    # result = api_list_finetune_jobs(token, "wanghh2003")
+    # result = api_get_finetune_job(oken, 365)
     result = api_create_finetune_job(token, model_id, dataset_id, rf_id=183, res_id=4)
     print(result)

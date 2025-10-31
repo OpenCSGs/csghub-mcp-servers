@@ -4,6 +4,7 @@ import base64
 from mcp.server.fastmcp import FastMCP
 from .api_client import (
     api_get_username_from_token,
+    api_get_namespaces_by_token,
 )
 from .api_client import (
     space, repo, space_resources, cluster,
@@ -19,6 +20,8 @@ def register_space_tools(mcp_instance: FastMCP):
     register_space_stop(mcp_instance)
     register_file_upload(mcp_instance)
     register_space_detail(mcp_instance)
+    register_namespace_tools(mcp_instance)
+    register_list_my_space_tool(mcp_instance)
 
 
 def register_space_create(mcp_instance: FastMCP):
@@ -49,7 +52,7 @@ In response, ["namespace"]["path"] can be used as namespace for other tool""",
         # files: list | None = None,
         resource_id: int,
         cluster_id: str,
-        namespace: str = "",
+        namespace: str = None,
         sdk: str = "gradio",
         license: str = "apache-2.0",
         private: bool = False,
@@ -71,6 +74,12 @@ In response, ["namespace"]["path"] can be used as namespace for other tool""",
             env: Environment variables.
             secrets: Secrets for the space.
         """
+        if namespace is None or len(namespace.strip()) < 1:
+            try:
+                namespace = api_get_username_from_token(token)
+            except Exception as e:
+                logger.error(f"Error calling user token API: {e}")
+                return f"Error: Failed to get username. {e}"
         
         resp = {}
         try:
@@ -429,11 +438,15 @@ def register_list_my_space_tool(mcp_instance: FastMCP):
         description="Retrieve a list of spaces for a specific user from CSGHub. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. You can control the pagination by specifying the number of items per page and the page number.",
         structured_output=True,
     )
-    def list_my_spaces(token: str, username: str, per: int = 10, page: int = 1) -> str:
+    def list_my_spaces(token: str, per: int = 10, page: int = 1) -> str:
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
-        if not username:
-            return "Error: The 'username' parameter is required."
+
+        try:
+            username = api_get_username_from_token(token)
+        except Exception as e:
+            logger.error(f"Error calling user token API: {e}")
+            return f"Error: Failed to get username. {e}"
         
         
         try:
@@ -442,3 +455,14 @@ def register_list_my_space_tool(mcp_instance: FastMCP):
         except Exception as e:
             logger.error(f"Error calling list spaces API: {e}")
             return f"Error: Failed to list spaces. {e}"
+
+def register_namespace_tools(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="list_namespaces",
+        title="List available namespaces or organizations for a user from CSGHub",
+        description="Retrieve a list of namespaces or organizations that a user has access to create space repos from CSGHub with user access token.",
+        structured_output=True,
+    )
+    def list_namespaces(token: str) -> str:
+        namespaces = api_get_namespaces_by_token(token)
+        return json.dumps(namespaces)

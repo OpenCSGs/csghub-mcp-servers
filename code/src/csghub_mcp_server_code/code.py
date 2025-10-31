@@ -3,6 +3,7 @@ from mcp.server.fastmcp import FastMCP
 import json
 from .api_client import (
     api_get_username_from_token,
+    api_get_namespaces_by_token,
     api_list_codes,
     api_get_code_details,
     api_create_code,
@@ -16,6 +17,7 @@ def register_code_tools(mcp_instance: FastMCP):
     register_code_query(mcp_instance=mcp_instance)
     register_code_creation(mcp_instance=mcp_instance)
     register_code_delete(mcp_instance=mcp_instance)
+    register_namespace_tools(mcp_instance=mcp_instance)
 
 def register_code_list(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -67,16 +69,18 @@ def register_code_creation(mcp_instance: FastMCP):
         license: str = "apache-2.0",
         readme: str = "",
         description: str = "",
+        namespace: str = None,
     ) -> str:
-        try:
-            username = api_get_username_from_token(token)
-        except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
+        if namespace is None or len(namespace.strip()) < 1:
+            try:
+                namespace = api_get_username_from_token(token)
+            except Exception as e:
+                logger.error(f"Error calling user token API: {e}")
+                return f"Error: Failed to get username. {e}"
 
         json_data = api_create_code(
             token=token,
-            namespace=username,
+            namespace=namespace,
             code_name=code_name,
             license=license,
             readme=readme,
@@ -95,3 +99,13 @@ def register_code_delete(mcp_instance: FastMCP):
         json_data = api_delete_code(token=token, code_id=code_id)
         return json.dumps(json_data)
 
+def register_namespace_tools(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="list_namespaces",
+        title="List available namespaces or organizations for a user from CSGHub",
+        description="Retrieve a list of namespaces or organizations that a user has access to create code repos from CSGHub with user access token.",
+        structured_output=True,
+    )
+    def list_namespaces(token: str) -> str:
+        namespaces = api_get_namespaces_by_token(token)
+        return json.dumps(namespaces)

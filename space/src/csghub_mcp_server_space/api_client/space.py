@@ -8,7 +8,6 @@ def api_get_top_download_spaces(num: int) -> dict:
     """Get top downloaded spaces.
     
     Args:
-        api_url: CSGHub API base URL
         num: Number of spaces to retrieve
         
     Returns:
@@ -40,7 +39,6 @@ def start(
     Run a space.
 
     Args:
-        api_url: CSGHub API base URL.
         token: User's token.
         namespace: Namespace of the user.
         space_name: Name of the space.
@@ -76,7 +74,6 @@ def create(
     """Create a new space.
     
     Args:
-        api_url: CSGHub API base URL
         token: User's token
         name: Name of the space
         namespace: Namespace of the user
@@ -126,7 +123,6 @@ def stop(
     Stop a space.
 
     Args:
-        api_url: CSGHub API base URL.
         token: User's token.
         namespace: Namespace of the user.
         space_name: Name of the space.
@@ -154,7 +150,6 @@ def delete(
     """Delete a space.
     
     Args:
-        api_url: CSGHub API base URL
         token: User's token
         namespace: Namespace of the user
         repo_name: Name of the space
@@ -178,7 +173,6 @@ def query_my_spaces(token: str, username: str, per: int = 10, page: int = 1) -> 
     """List spaces of a user.
     
     Args:
-        api_url: CSGHub API base URL
         token: User access token
         username: Username
         per: Items per page

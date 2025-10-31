@@ -57,5 +57,5 @@ if __name__ == "__main__":
     token = ""
     deploy_type = "6"
     result = api_get_available_runtime_frameworks_by_deploy_type(token, deploy_type)
-    # result = api_get_available_runtime_frameworks(api_url, "Qwen/Qwen3-0.6B", "2")
+    # result = api_get_available_runtime_frameworks("Qwen/Qwen3-0.6B", "2")
     print(result)

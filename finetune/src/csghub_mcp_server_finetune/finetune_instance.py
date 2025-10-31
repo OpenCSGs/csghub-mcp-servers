@@ -14,10 +14,6 @@ from .api_client import (
     api_get_available_runtime_frameworks,
     api_get_model_detail,
 )
-from .utils import (
-    get_csghub_api_endpoint, 
-    get_csghub_api_key
-)
 
 logger = logging.getLogger(__name__)
 
@@ -43,11 +39,8 @@ def register_finetune_list(mcp_instance: FastMCP):
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
         
-        api_url = get_csghub_api_endpoint()
-        api_key = get_csghub_api_key()
-        
         try:
-            username = api_get_username_from_token(api_url, api_key, token)
+            username = api_get_username_from_token(token)
         except Exception as e:
             logger.error(f"Error calling user token API: {e}")
             return f"Error: Failed to get username. {e}"
@@ -55,7 +48,7 @@ def register_finetune_list(mcp_instance: FastMCP):
         logger.info(f"Listing finetune jobs for user: {username}")
         
         try:
-            finetunes = api_list_finetunes(api_url, token, username, per, page)
+            finetunes = api_list_finetunes(token, username, per, page)
             return json.dumps(finetunes)
         except Exception as e:
             logger.error(f"Error calling finetune API: {e}")
@@ -70,8 +63,7 @@ def register_finetune_query(mcp_instance: FastMCP):
         structured_output=True,
     )
     def get_finetuen_status_by_id(token: str, model_id: str, deploy_id: int) -> str:
-        api_url = get_csghub_api_endpoint()
-        response_data = api_get_finetune_status(api_url, token, model_id, deploy_id)
+        response_data = api_get_finetune_status(token, model_id, deploy_id)
         json_data = response_data["data"]
         access_url = ""
         status = json_data["status"]
@@ -88,10 +80,10 @@ def register_query_finetune_conditions(mcp_instance: FastMCP):
         structured_output=True,
     )
     def query_available_resources_and_runtime_frameworks_for_finetune(model_id: str) -> str:
-        api_url = get_csghub_api_endpoint()
+
         deploy_type = "2"
-        res_json_data = api_get_available_resources(api_url, cluster_id, deploy_type)
-        run_json_data = api_get_available_runtime_frameworks(api_url, model_id, deploy_type)
+        res_json_data = api_get_available_resources(cluster_id, deploy_type)
+        run_json_data = api_get_available_runtime_frameworks(model_id, deploy_type)
 
         return json.dumps({
             "resources_data": res_json_data["data"],
@@ -111,9 +103,8 @@ def register_finetune_create(mcp_instance: FastMCP):
         resource_id: int,
         runtime_framework_id: int,
     ) -> str:
-        api_url = get_csghub_api_endpoint()
+
         json_data = api_finetune_create(
-            api_url=api_url,
             token=token,
             model_id=model_id,
             cluster_id=cluster_id,
@@ -130,8 +121,7 @@ def register_finetune_control_tools(mcp_instance: FastMCP):
         structured_output=True,
     )
     def stop_finetune_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
-        api_url = get_csghub_api_endpoint()
-        res_json_data = api_finetune_stop(api_url, token, model_id, deploy_id)
+        res_json_data = api_finetune_stop(token, model_id, deploy_id)
         return json.dumps(res_json_data)
 
     @mcp_instance.tool(
@@ -141,8 +131,7 @@ def register_finetune_control_tools(mcp_instance: FastMCP):
         structured_output=True,
     )
     def start_finetune_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
-        api_url = get_csghub_api_endpoint()
-        res_json_data = api_finetune_start(api_url, token, model_id, deploy_id)
+        res_json_data = api_finetune_start(token, model_id, deploy_id)
         return json.dumps(res_json_data)
     
     @mcp_instance.tool(
@@ -152,8 +141,7 @@ def register_finetune_control_tools(mcp_instance: FastMCP):
         structured_output=True,
     )
     def delete_finetune_by_modelid_and_deployid(token: str, model_id: str, deploy_id: int) -> str:
-        api_url = get_csghub_api_endpoint()
-        res_json_data = api_finetune_delete(api_url, token, model_id, deploy_id)
+        res_json_data = api_finetune_delete(token, model_id, deploy_id)
         return json.dumps(res_json_data)  
 
 def register_check_model(mcp_instance: FastMCP):
@@ -165,7 +153,6 @@ def register_check_model(mcp_instance: FastMCP):
         structured_output=True,
     )
     def check_model_by_model_id(model_id: str) -> str:
-        api_url = get_csghub_api_endpoint()
-        json_data = api_get_model_detail(api_url, model_id)
+        json_data = api_get_model_detail(model_id)
         return json.dumps({"data": json_data["data"]})
 

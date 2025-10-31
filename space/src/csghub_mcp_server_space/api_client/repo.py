@@ -16,7 +16,6 @@ def upload_file(
     """Upload a file to a repository.
 
     Args:
-        api_url: CSGHub API base URL
         token: User's token
         namespace: Namespace of the user
         repo_name: Name of the repository
@@ -57,7 +56,6 @@ def detail(
     Get repo details.
 
     Args:
-        api_url: CSGHub API base URL.
         token: User's token.
         repo_type: Type of the repo, e.g. "space", "model", "dataset", "code".
         namespace: Namespace of the user or organization.

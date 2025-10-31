@@ -8,7 +8,6 @@ def get_opencompass_datasets(token: str) -> dict:
     """Get opencompass datasets.
     
     Args:
-        api_url: CSGHub API base URL
         token: User access token
         
     Returns:
