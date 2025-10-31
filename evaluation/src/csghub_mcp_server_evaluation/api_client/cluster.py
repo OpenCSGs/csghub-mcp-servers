@@ -8,7 +8,6 @@ def get_clusters(token: str) -> dict:
     """Get cluster information.
     
     Args:
-        api_url: CSGHub API base URL
         token: User's token
         
     Returns:

@@ -8,7 +8,6 @@ def get_space_resources(token: str, cluster_id: str, deploy_type: int) -> dict:
     """Get space resources.
     
     Args:
-        api_url: CSGHub API base URL
         token: User access token
         cluster_id: The ID of the cluster
         deploy_type: The type of deployment

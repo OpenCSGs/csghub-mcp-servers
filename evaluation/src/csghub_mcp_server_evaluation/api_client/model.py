@@ -8,7 +8,6 @@ def get_opencompass_models(token: str) -> dict:
     """Get opencompass models.
     
     Args:
-        api_url: CSGHub API base URL
         token: User access token
         
     Returns:
@@ -40,7 +39,6 @@ def get_model_runtime_framework(token: str, model_id: str, deploy_type: int) -> 
     """Get model runtime framework.
     
     Args:
-        api_url: CSGHub API base URL
         token: User access token
         model_id: The ID of the model
         deploy_type: The type of deployment

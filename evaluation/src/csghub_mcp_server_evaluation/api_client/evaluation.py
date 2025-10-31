@@ -9,7 +9,6 @@ def list_evaluations(token: str, per: int = 10, page: int = 1) -> dict:
     """List evaluation services for a user.
     
     Args:
-        api_url: CSGHub API base URL
         token: User access token
         username: Username
         per: Items per page
@@ -60,7 +59,6 @@ def get_evaluation_details(token: str, id: int) -> dict:
     """Get evaluaton details.
     
     Args:
-        api_url: CSGHub API base URL
         token: User access token
         id: Evaluation ID
         
@@ -105,7 +103,6 @@ def create_evaluation(token: str,
     """Create a new evaluation task.
     
     Args:
-        api_url: CSGHub API base URL
         token: User access token
         task_name: Name of the evaluation task
         model_ids: List of model IDs to be evaluated
@@ -155,7 +152,6 @@ def delete_evaluation(token: str, evaluation_id: int) -> dict:
     """Delete an evaluation task.
 
     Args:
-        api_url: CSGHub API base URL
         token: User access token
         evaluation_id: ID of the evaluation task to be deleted
 

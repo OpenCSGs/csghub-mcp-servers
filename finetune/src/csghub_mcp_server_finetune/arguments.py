@@ -3,7 +3,7 @@ from importlib.metadata import version, PackageNotFoundError
 
 def get_version_from_package():
     try:
-        return version("csghub-mcp-server")
+        return version("csghub-mcp-server-finetune")
     except PackageNotFoundError:
         return "unknown"
 
