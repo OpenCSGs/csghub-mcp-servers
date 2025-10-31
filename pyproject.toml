@@ -11,6 +11,11 @@ dependencies = [
 
 [tool.uv.workspace]
 members = [
+    "code",
+    "dataflow",
+    "evaluation",
+    "finetune",
+    "inference",
+    "model",
     "space",
-    "model"
 ]
