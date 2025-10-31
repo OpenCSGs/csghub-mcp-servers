@@ -4,11 +4,12 @@ import base64
 from mcp.server.fastmcp import FastMCP
 from .api_client import (
     api_get_username_from_token,
-    api_get_namespaces_by_token,
+    user,
 )
 from .api_client import (
     space, repo, space_resources, cluster,
     query_my_spaces,
+    api_get_namespaces_by_token,
 )
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,6 @@ def register_space_tools(mcp_instance: FastMCP):
     register_space_stop(mcp_instance)
     register_file_upload(mcp_instance)
     register_space_detail(mcp_instance)
-    register_namespace_tools(mcp_instance)
     register_list_my_space_tool(mcp_instance)
 
 
@@ -49,7 +49,6 @@ In response, ["namespace"]["path"] can be used as namespace for other tool""",
     def create_space(
         token: str,
         name: str,
-        # files: list | None = None,
         resource_id: int,
         cluster_id: str,
         namespace: str = None,
@@ -211,6 +210,26 @@ iface.launch()'''
         except Exception as e:
             logger.error(f"Error calling get clusters API: {e}")
             return f"Error: Failed to get clusters. {e}"
+
+    @mcp_instance.tool(
+        name="get_user_namespaces",
+        title="Get user's available namespaces",
+        description="Get user's available namespaces for creating repositories. Parameters: `token` (str, required): User's token.",
+        structured_output=True,
+    )
+    def get_user_namespaces_tool(token: str) -> str:
+        """
+        Get user's available namespaces.
+
+        Args:
+            token: User's token.
+        """
+        try:
+            namespaces = api_get_namespaces_by_token(token)
+            return json.dumps(namespaces)
+        except Exception as e:
+            logger.error(f"Error calling get user namespaces API: {e}")
+            return f"Error: Failed to get user namespaces. {e}"
 
 def register_file_upload(mcp_instance: FastMCP):
 
@@ -456,13 +475,3 @@ def register_list_my_space_tool(mcp_instance: FastMCP):
             logger.error(f"Error calling list spaces API: {e}")
             return f"Error: Failed to list spaces. {e}"
 
-def register_namespace_tools(mcp_instance: FastMCP):
-    @mcp_instance.tool(
-        name="list_namespaces",
-        title="List available namespaces or organizations for a user from CSGHub",
-        description="Retrieve a list of namespaces or organizations that a user has access to create space repos from CSGHub with user access token.",
-        structured_output=True,
-    )
-    def list_namespaces(token: str) -> str:
-        namespaces = api_get_namespaces_by_token(token)
-        return json.dumps(namespaces)
