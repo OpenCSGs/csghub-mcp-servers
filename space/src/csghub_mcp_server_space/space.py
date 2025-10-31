@@ -4,6 +4,7 @@ import base64
 from mcp.server.fastmcp import FastMCP
 from .api_client import (
     api_get_username_from_token,
+    user,
 )
 from .api_client import (
     space, repo, space_resources, cluster,
@@ -202,6 +203,31 @@ iface.launch()'''
         except Exception as e:
             logger.error(f"Error calling get clusters API: {e}")
             return f"Error: Failed to get clusters. {e}"
+
+    @mcp_instance.tool(
+        name="get_user_namespaces",
+        title="Get user's available namespaces",
+        description="Get user's available namespaces for creating repositories. Parameters: `username` (str, required): User's username.",
+        structured_output=True,
+    )
+    def get_user_namespaces_tool(username: str) -> str:
+        """
+        Get user's available namespaces.
+
+        Args:
+            username: User's username.
+        """
+        api_url = get_csghub_api_endpoint()
+
+        if not username:
+            return "Error: The 'username' parameter is required."
+
+        try:
+            namespaces = user.get_user_namespaces(api_url=api_url, username=username)
+            return json.dumps(namespaces)
+        except Exception as e:
+            logger.error(f"Error calling get user namespaces API: {e}")
+            return f"Error: Failed to get user namespaces. {e}"
 
 def register_file_upload(mcp_instance: FastMCP):
 
