@@ -55,6 +55,7 @@ def api_get_job_details(token: str, job_id: int, job_type: str = "data_refine") 
             "job_name": res["job_name"],
             "status": res["status"],
             "finished_at": res["date_finish"],
+            "output_branch_name": res["export_branch_name"],
             "web_access_url": access_url,
         }
 
