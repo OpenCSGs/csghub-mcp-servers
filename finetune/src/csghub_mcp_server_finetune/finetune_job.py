@@ -104,6 +104,14 @@ def register_finetune_job_create(mcp_instance: FastMCP):
         resource_id: int, runtime_framework_id: int,
         epochs: int = 1, learning_rate: float = 0.0001
     ) -> str:
+        json_data = api_get_model_detail(token, model_id)
+        if "model_id" not in json_data:
+            return json.dumps({"error": "Model not found. Please check the model ID."})
+        
+        json_data = api_get_dataset_detail(token, dataset_id)
+        if "dataset_id" not in json_data:
+            return json.dumps({"error": "Dataset not found. Please check the dataset ID."})
+        
         json_data = api_create_finetune_job(
             token=token,
             model_id=model_id,
