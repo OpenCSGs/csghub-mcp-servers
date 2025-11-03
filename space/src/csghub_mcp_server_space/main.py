@@ -8,7 +8,7 @@ from .space import register_space_tools
 
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("CSGHub-MCP-Server", host="0.0.0.0", port=8000, log_level="INFO")
+mcp = FastMCP("CSGHub-Space-MCP-Server", host="0.0.0.0", port=8000, log_level="INFO")
 
 register_space_tools(mcp)
 
