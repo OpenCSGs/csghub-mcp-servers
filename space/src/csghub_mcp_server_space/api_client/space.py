@@ -3,51 +3,23 @@ import logging
 from .constants import get_csghub_config
 
 logger = logging.getLogger(__name__)
-
-def api_get_top_download_spaces(num: int) -> dict:
-    """Get top downloaded spaces.
-    
-    Args:
-        num: Number of spaces to retrieve
-        
-    Returns:
-        Top spaces data
-    """
-    config = get_csghub_config()
-    headers = {"Content-Type": "application/json"}
-    params = {
-        "page": 1,
-        "per": num,
-        "search": "",
-        "sort": "most_download"
-    }
-    url = f"{config.api_endpoint}/api/v1/spaces"
-    response = requests.get(url, headers=headers, params=params)
-    if response.status_code != 200:
-        logger.error(f"failed to get spaces on {url}: {response.text}")
-        
-    response.raise_for_status()
-    return response.json()
-
-    
+  
 def start(
     token: str,
-    namespace: str,
-    space_name: str
+    space_id: str
 ) -> dict:
     """
     Run a space.
 
     Args:
         token: User's token.
-        namespace: Namespace of the user.
-        space_name: Name of the space.
+        space_id: Name of the space.
 
     Returns:
         Response data.
     """
     config = get_csghub_config()
-    url = f"{config.api_endpoint}/api/v1/spaces/{namespace}/{space_name}/run"
+    url = f"{config.api_endpoint}/api/v1/spaces/{space_id}/run"
     headers = {
         "Authorization": f"Bearer {token}"
     }
@@ -116,22 +88,20 @@ def create(
 
 def stop(
     token: str,
-    namespace: str,
-    space_name: str
+    space_id: str
 ) -> dict:
     """
     Stop a space.
 
     Args:
         token: User's token.
-        namespace: Namespace of the user.
-        space_name: Name of the space.
+        space_id: Name of the space.
 
     Returns:
         Response data.
     """
     config = get_csghub_config()
-    url = f"{config.api_endpoint}/api/v1/spaces/{namespace}/{space_name}/stop"
+    url = f"{config.api_endpoint}/api/v1/spaces/{space_id}/stop"
     headers = {
         "Authorization": f"Bearer {token}"
     }
@@ -144,21 +114,19 @@ def stop(
 
 def delete(
     token: str,
-    namespace: str,
-    repo_name: str
+    space_id: str
 ) -> dict:
     """Delete a space.
     
     Args:
         token: User's token
-        namespace: Namespace of the user
-        repo_name: Name of the space
+        space_id: Name of the space
         
     Returns:
         Response data
     """
     config = get_csghub_config()
-    url = f"{config.api_endpoint}/api/v1/spaces/{namespace}/{repo_name}"
+    url = f"{config.api_endpoint}/api/v1/spaces/{space_id}"
     headers = {
         "Authorization": f"Bearer {token}"
     }
@@ -193,4 +161,19 @@ def query_my_spaces(token: str, username: str, per: int = 10, page: int = 1) -> 
         logger.error(f"failed to list user spaces on {url}: {response.text}")
 
     response.raise_for_status()
-    return response.json()
+    json_data = response.json()
+
+    res_data = []
+    res_list = json_data["data"] if json_data and "data" in json_data else []
+    if not isinstance(res_list, list):
+        return res_data
+    
+    for res in res_list:
+        res_data.append({
+            "space_id": res["path"],
+            "status": res["status"],
+            "private": res["private"],
+            "sdk_type": res["sdk"],
+        })
+
+    return res_data

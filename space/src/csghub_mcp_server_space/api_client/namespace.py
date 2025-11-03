@@ -17,6 +17,7 @@ def api_get_namespaces_by_token(token: str) -> str:
 
     response.raise_for_status()
     json_data = response.json()
+    print(json_data)
     namespaces = []
     if "data" in json_data:
         res_data = json_data["data"]

@@ -31,5 +31,24 @@ def get_space_resources(token: str, cluster_id: str, deploy_type: int) -> dict:
         "deploy_type": deploy_type
     }
     response = requests.get(url, headers=headers, params=params)
+    if response.status_code != 200:
+        logger.error(f"failed to list space resources on {url}: {response.text}")
+
     response.raise_for_status()
-    return response.json()
+    json_data = response.json()
+
+    res_data = []
+    res_list = json_data["data"] if json_data and "data" in json_data else []
+    if not isinstance(res_list, list):
+        return res_data
+    
+    for res in res_list:
+        res_data.append({
+            "id": res["id"],
+            "name": res["name"],
+            "type": res["type"],
+            "is_available": res["is_available"],
+            "pay_mode": res["pay_mode"],
+        })
+
+    return res_data

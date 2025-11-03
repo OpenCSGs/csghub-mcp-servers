@@ -48,30 +48,39 @@ def upload_file(
 
 def detail(
     token: str,
-    repo_type: str,
-    namespace: str,
-    repo_name: str
+    space_id: str
 ) -> dict:
     """
     Get repo details.
 
     Args:
         token: User's token.
-        repo_type: Type of the repo, e.g. "space", "model", "dataset", "code".
-        namespace: Namespace of the user or organization.
-        repo_name: Name of the repo.
+        space_id: Name of the repo.
 
     Returns:
         Response data.
     """
     config = get_csghub_config()
-    url = f"{config.api_endpoint}/api/v1/{repo_type}s/{namespace}/{repo_name}"
+    url = f"{config.api_endpoint}/api/v1/spaces/{space_id}"
     headers = {
         "Authorization": f"Bearer {token}"
     }
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
-        logger.error(f"failed to get repo detail on {url}: {response.text}")
+        logger.error(f"failed to get space id {space_id} detail: on {url}: {response.text}")
 
     response.raise_for_status()
-    return response.json()
+    json_data = response.json()
+
+    res_data = {}
+    if json_data and "data" in json_data:
+        res = json_data["data"]
+        access_url = f"{config.web_endpoint}/spaces/{res['path']}"
+        res_data = {
+            "space_id": res["path"],
+            "status": res["status"],
+            "sdk_type": res["sdk"],
+            "web_access_url": access_url,
+        }
+
+    return res_data

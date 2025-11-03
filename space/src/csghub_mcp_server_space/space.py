@@ -35,7 +35,7 @@ Parameters:
 - `name` (str, required): Name of the space.
 - `cluster_id` (str, required): The cluster ID to deploy the space.
 - `resource_id` (int, required): The resource ID for the space.
-- `namespace` (str, optional): The user's namespace.
+- `namespace` (str, optional): The user's namespace, default value is the username derived from the token.
 - `sdk` (str, optional, default: 'gradio'): The SDK to use for the space.
 - `license` (str, optional, default: 'apache-2.0'): The license for the space.
 - `private` (bool, optional, default: False): Whether the space is private.
@@ -129,10 +129,10 @@ iface.launch()'''
                     resp['upload_result'] = {'error': f"Failed to upload file: {str(upload_e)}"}
                 
                 try:
+                    space_id = f"{namespace}/{name}"
                     run_resp = space.start(
                         token=token,
-                        namespace=namespace,
-                        space_name=name,
+                        space_id=space_id,
                     )
                     resp['run_result'] = run_resp
                 except Exception as run_e:
@@ -145,12 +145,12 @@ iface.launch()'''
             return f"Error: Failed during the core operation (create, upload, or run). {e}"
 
     @mcp_instance.tool(
-        name="get_space_resource",
-        title="Get available space resources",
+        name="get_space_resource_by_cluster_id",
+        title="Get available space resources by cluster_id",
         description="Get available space resources. Parameters: `token` (str, required): User's API token. `cluster_id` (str, optional): ID of the cluster. If not provided, the first available cluster will be used.",
         structured_output=True,
     )
-    def get_space_resource(
+    def get_space_resource_by_cluster_id(
         token: str,
         cluster_id: str = ""
     ) -> str:
@@ -168,8 +168,7 @@ iface.launch()'''
         try:
             final_cluster_id = cluster_id
             if not final_cluster_id:
-                clusters_resp = cluster.get_clusters(token=token)
-                clusters = clusters_resp.get('data', [])
+                clusters = cluster.get_clusters(token=token)
                 if clusters and len(clusters) > 0:
                     final_cluster_id = clusters[0].get('id')
                 else:
@@ -291,37 +290,30 @@ iface.launch()""",
 def register_space_start(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
-        name="start_space",
-        title="Run a CSGHub space",
-        description="Starts a CSGHub space. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. `space_name` (str, required): Name of the space to run.",
+        name="start_space_by_id",
+        title="Start a CSGHub space with access token.",
+        description="Starts a CSGHub space. Parameters: `token` (str, required): User's API token. `space_id` (str, required): ID of the space to run. `space_id` is usually in the format of namespace/name. Example: 'user1/my-space'.",
         structured_output=True,
     )
-    def start_space(
+    def start_space_by_id(
         token: str,
-        username: str,
-        space_name: str,
+        space_id: str,
     ) -> str:
         """
         Run a CSGHub space.
 
         Args:
             token: User's API token.
-            username: The user's namespace.
-            space_name: Name of the space.
+            space_id: Name of the space.
         """
 
         if not token:
             return "Error: The 'token' parameter is required."
-        if not username:
-            return "Error: The 'username' parameter is required."
-        if not space_name:
-            return "Error: The 'space_name' parameter is required."
 
         try:
             resp = space.start(
                 token=token,
-                namespace=username,
-                space_name=space_name,
+                space_id=space_id,
             )
             return json.dumps(resp)
         except Exception as e:
@@ -331,37 +323,30 @@ def register_space_start(mcp_instance: FastMCP):
 def register_space_stop(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
-        name="stop_space",
-        title="Stop a CSGHub space",
-        description="Stops a CSGHub space. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. `space_name` (str, required): Name of the space to stop.",
+        name="stop_space_by_id",
+        title="Stop a CSGHub space by ID namespace/name with access token.",
+        description="Stops a CSGHub space. Parameters: `token` (str, required): User's API token. `space_id` (str, required): Name of the space to stop. `space_id` is usually in the format of namespace/name. Example: 'user1/my-space'.",
         structured_output=True,
     )
-    def stop_space(
+    def stop_space_by_id(
         token: str,
-        username: str,
-        space_name: str,
+        space_id: str,
     ) -> str:
         """
         Stop a CSGHub space.
 
         Args:
             token: User's API token.
-            username: The user's namespace.
-            space_name: Name of the space.
+            space_id: Name of the space.
         """
 
         if not token:
             return "Error: The 'token' parameter is required."
-        if not username:
-            return "Error: The 'username' parameter is required."
-        if not space_name:
-            return "Error: The 'space_name' parameter is required."
 
         try:
             resp = space.stop(
                 token=token,
-                namespace=username,
-                space_name=space_name,
+                space_id=space_id,
             )
             return json.dumps(resp)
         except Exception as e:
@@ -371,38 +356,32 @@ def register_space_stop(mcp_instance: FastMCP):
 def register_space_detail(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
-        name="get_space_detail",
-        title="Get details of a CSGHub space",
-        description="Retrieves details for a specific CSGHub space. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. `space_name` (str, required): Name of the space.",
+        name="get_space_detail_by_id",
+        title="Get details or status of a CSGHub space",
+        description="Retrieves details for a specific CSGHub space. Parameters: `token` (str, required): User's API token. `space_id` (str, required): ID of the space. `space_id` is usually in the format of namespace/name. Example: 'user1/my-space'.",
         structured_output=True,
     )
-    def get_space_detail(
+    def get_space_detail_by_id(
         token: str,
-        username: str,
-        space_name: str,
+        space_id: str,
     ) -> str:
         """
         Get details of a CSGHub space.
 
         Args:
             token: User's API token.
-            username: The user's namespace.
-            space_name: Name of the space.
+            space_id: namespace/name of the space.
         """
 
         if not token:
             return "Error: The 'token' parameter is required."
-        if not username:
-            return "Error: The 'username' parameter is required."
-        if not space_name:
+        if not space_id:
             return "Error: The 'space_name' parameter is required."
 
         try:
             resp = repo.detail(
                 token=token,
-                repo_type="space",
-                namespace=username,
-                repo_name=space_name,
+                space_id=space_id,
             )
             return json.dumps(resp)
         except Exception as e:
@@ -413,37 +392,30 @@ def register_space_detail(mcp_instance: FastMCP):
 def register_space_delete(mcp_instance: FastMCP):
 
     @mcp_instance.tool(
-        name="delete_space",
-        title="Delete a CSGHub space",
-        description="Deletes a CSGHub space. Parameters: `token` (str, required): User's API token. `username` (str, required): The user's namespace. `space_name` (str, required): Name of the space to delete.",
+        name="delete_space_by_id",
+        title="Delete a CSGHub space with access token",
+        description="Deletes a CSGHub space. Parameters: `token` (str, required): User's API token. `space_id` (str, required): ID of the space to delete. `space_id` is usually in the format of namespace/name. Example: 'user1/my-space'.",
         structured_output=True,
     )
-    def delete_space(
+    def delete_space_by_id(
         token: str,
-        username: str,
-        space_name: str,
+        space_id: str,
     ) -> str:
         """
         Delete a CSGHub space.
 
         Args:
             token: User's API token.
-            username: The user's namespace.
-            space_name: Name of the space.
+            space_id: Name of the space.
         """
 
         if not token:
             return "Error: The 'token' parameter is required."
-        if not username:
-            return "Error: The 'username' parameter is required."
-        if not space_name:
-            return "Error: The 'space_name' parameter is required."
 
         try:
             resp = space.delete(
                 token=token,
-                namespace=username,
-                repo_name=space_name,
+                space_id=space_id,
             )
             return json.dumps(resp)
         except Exception as e:
