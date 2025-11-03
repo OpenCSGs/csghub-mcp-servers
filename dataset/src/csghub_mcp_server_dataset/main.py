@@ -5,13 +5,13 @@ import logging
 from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 from .arguments import setup_argparse
-from .dataflow import register_dataflow_tools
+from .dataset import register_dataset_tools
 
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("CSGHub-Dataflow-MCP-Server", host="0.0.0.0", port=8000, log_level="INFO")
+mcp = FastMCP("CSGHub-Dataset-MCP-Server", host="0.0.0.0", port=8000, log_level="INFO")
 
-register_dataflow_tools(mcp)
+register_dataset_tools(mcp)
 
 def signal_handler(sig, frame):
     logger.info("cleaning resource")
