@@ -84,7 +84,18 @@ def create(
         logger.error(f"failed to create space on {url}: {response.text}")
         
     response.raise_for_status()
-    return response.json()
+    json_data = response.json()
+    
+    res_data = {}
+    if json_data and "data" in json_data:
+        res = json_data["data"]
+        res_data = {
+            "space_id": res["path"],
+            "private": res["private"],
+            "sdk_type": res["sdk"],
+        }
+
+    return res_data
 
 def stop(
     token: str,

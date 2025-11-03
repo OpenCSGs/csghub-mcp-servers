@@ -96,8 +96,8 @@ In response, ["namespace"]["path"] can be used as namespace for other tool""",
                 secrets=secrets
             )
             resp['create_result'] = create_resp
-            namespace = create_resp["data"]["path"].split('/')[0]
-            if 'data' in create_resp:
+            namespace = create_resp["space_id"].split('/')[0]
+            if 'space_id' in create_resp:
                 file = {
                     'name': 'app.py',
                     'content': '''import gradio as gr
