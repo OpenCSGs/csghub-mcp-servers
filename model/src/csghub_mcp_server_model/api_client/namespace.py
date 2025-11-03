@@ -1,6 +1,7 @@
 import requests
 import logging
 from .constants import get_csghub_config
+from .user import api_get_username_from_token
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,8 @@ def api_get_namespaces_by_token(token: str) -> str:
     response.raise_for_status()
     json_data = response.json()
     namespaces = []
+    username = api_get_username_from_token(token)
+    namespaces.append(username)
     if "data" in json_data:
         res_data = json_data["data"]
         if "data" in res_data:
