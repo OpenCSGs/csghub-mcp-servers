@@ -8,6 +8,7 @@ from .api_client import (
     api_get_dataset_details,
     api_create_dataset,
     api_delete_dataset,
+    api_find_datasets_by_name,
 )
 
 logger = logging.getLogger(__name__)
@@ -18,6 +19,18 @@ def register_dataset_tools(mcp_instance: FastMCP):
     register_dataset_creation(mcp_instance=mcp_instance)
     register_dataset_delete(mcp_instance=mcp_instance)
     register_namespace_tools(mcp_instance=mcp_instance)
+    register_dataset_query_tools(mcp_instance=mcp_instance)
+
+def register_dataset_query_tools(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="query_datasets_by_name",
+        title="Query datasets by name from CSGHub",
+        description="Query the datasets from CSGHub by specifying dataset name. You can control the pagination by specifying the number of items per page and the page number.",
+        structured_output=True,
+    )
+    def query_datasets_by_name(token: str, name: str, page: int = 1, page_size: int = 20) -> str:
+       json_data = api_find_datasets_by_name(token=token, name=name, page=page, page_size=page_size)
+       return json.dumps(json_data)
 
 def register_dataset_list(mcp_instance: FastMCP):
     @mcp_instance.tool(

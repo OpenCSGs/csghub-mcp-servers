@@ -103,3 +103,33 @@ def api_delete_dataset(token: str, dataset_id: str) -> dict:
 
     response.raise_for_status()
     return response.json()
+
+def api_find_datasets_by_name(token: str, name: str, page: int = 1, page_size: int = 20) -> dict:
+    config = get_csghub_config()
+
+    headers = {"Content-Type": "application/json"}
+    params = {
+        "page": page,
+        "per": page_size,
+        "search": name,
+        "sort": "trending",
+    }
+    url = f"{config.api_endpoint}/api/v1/datasets"
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code != 200:
+        logger.error(f"failed to get searched datasets on {url}: {response.text}")
+    
+    response.raise_for_status()
+    json_data = response.json()
+
+    res_data = []
+    res_list = json_data["data"] if json_data and "data" in json_data else []
+    if not isinstance(res_list, list):
+        return res_data
+
+    for res in res_list:
+        res_data.append({
+            "dataset_id": res["path"],
+        })
+
+    return res_data
