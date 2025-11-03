@@ -3,4 +3,5 @@ from .dataset import api_list_datasets
 from .dataset import api_get_dataset_details
 from .dataset import api_create_dataset
 from .dataset import api_delete_dataset
+from .dataset import api_find_datasets_by_name
 from .namespace import api_get_namespaces_by_token

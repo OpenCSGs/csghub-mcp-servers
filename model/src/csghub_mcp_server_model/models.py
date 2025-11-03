@@ -9,6 +9,7 @@ from .api_client import (
     api_get_model_details,
     api_create_model,
     api_delete_model,
+    api_find_models_by_name,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,6 +31,16 @@ def register_model_query_tools(mcp_instance: FastMCP):
     )
     def get_top_download_models(num: int) -> str:
        json_data = api_top_download_models(num)
+       return json.dumps(json_data)
+
+    @mcp_instance.tool(
+        name="query_models_by_name",
+        title="Query models by name from CSGHub",
+        description="Query the models from CSGHub by specifying model name. You can control the pagination by specifying the number of items per page and the page number.",
+        structured_output=True,
+    )
+    def query_models_by_name(token: str, name: str, page: int = 1, page_size: int = 20) -> str:
+       json_data = api_find_models_by_name(token=token, name=name, page=page, page_size=page_size)
        return json.dumps(json_data)
 
 def register_user_model_list(mcp_instance: FastMCP):
