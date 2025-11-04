@@ -127,9 +127,10 @@ def api_find_datasets_by_name(token: str, name: str, page: int = 1, page_size: i
     if not isinstance(res_list, list):
         return res_data
 
+    total = json_data["total"]
     for res in res_list:
         res_data.append({
             "dataset_id": res["path"],
         })
 
-    return res_data
+    return {"total_found": total, "datasets": res_data}

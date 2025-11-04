@@ -175,9 +175,10 @@ def api_find_models_by_name(token: str, name: str, page: int = 1, page_size: int
     if not isinstance(res_list, list):
         return res_data
 
+    total = json_data["total"]
     for res in res_list:
         res_data.append({
             "model_id": res["path"],
         })
 
-    return res_data
+    return {"total_found": total, "models": res_data}
