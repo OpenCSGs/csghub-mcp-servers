@@ -107,7 +107,10 @@ def api_delete_dataset(token: str, dataset_id: str) -> dict:
 def api_find_datasets_by_name(token: str, name: str, page: int = 1, page_size: int = 20) -> dict:
     config = get_csghub_config()
 
-    headers = {"Content-Type": "application/json"}
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
     params = {
         "page": page,
         "per": page_size,

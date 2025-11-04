@@ -155,13 +155,17 @@ def api_delete_model(token: str, model_id: str) -> dict:
 def api_find_models_by_name(token: str, name: str, page: int = 1, page_size: int = 20) -> dict:
     config = get_csghub_config()
 
-    headers = {"Content-Type": "application/json"}
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
     params = {
         "page": page,
         "per": page_size,
         "search": name,
         "sort": "trending",
     }
+    print(params)
     url = f"{config.api_endpoint}/api/v1/models"
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
@@ -169,7 +173,7 @@ def api_find_models_by_name(token: str, name: str, page: int = 1, page_size: int
     
     response.raise_for_status()
     json_data = response.json()
-
+    print(json_data)
     res_data = []
     res_list = json_data["data"] if json_data and "data" in json_data else []
     if not isinstance(res_list, list):
