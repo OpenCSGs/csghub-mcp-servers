@@ -36,7 +36,7 @@ def register_model_query_tools(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="query_models_by_name",
         title="Query models by name from CSGHub",
-        description="Query the models from CSGHub by specifying model name. You can control the pagination by specifying the number of items per page and the page number.",
+        description="Query the models from CSGHub by specifying model name. The default 20 models will be returned if no page size is specified. You can control the pagination by specifying the number of items per page and the page number. ",
         structured_output=True,
     )
     def query_models_by_name(token: str, name: str, page: int = 1, page_size: int = 20) -> str:
