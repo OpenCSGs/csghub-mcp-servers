@@ -66,7 +66,7 @@ def api_get_inference_status(token: str, model_id: str, deploy_id: int) -> dict:
         api_access_endpoint = ""
         status = job_data["status"]
         if status.lower() == "running":
-            web_access_url = f"https://opencsg.com/endpoints/{model_id}/{deploy_id}?tab=summary"
+            web_access_url = f"{config.web_endpoint}/endpoints/{model_id}/{deploy_id}?tab=summary"
             api_access_endpoint = f"https://{job_data['endpoint']}/v1/chat/completions"
 
         res_data = {
