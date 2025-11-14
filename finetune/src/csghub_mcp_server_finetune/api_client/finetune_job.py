@@ -28,12 +28,16 @@ def api_list_finetune_jobs(token: str, username: str, per: int = 10, page: int =
 
     for res in res_list:
         finetuned_model_name = res["result_url"]
-        res_data.append({
+        job = {
             "id": res["id"],
             "task_name": res["task_name"],
             "status": res["status"],
-            "finetuned_model_address": f"{config.web_endpoint}/models/{finetuned_model_name}",
-        })
+            "finetuned_model_name": finetuned_model_name,
+        }
+        if res["status"].lower() == "succeeded":
+            job["finetuned_model_address"] = f"{config.web_endpoint}/models/{finetuned_model_name}"
+
+        res_data.append(job)
 
     return res_data
 
@@ -57,8 +61,10 @@ def api_get_finetune_job(token: str, job_id: int) -> dict:
             "id": job_data["id"],
             "task_name": job_data["task_name"],
             "status": job_data["status"],
-            "finetuned_model_address": f"{config.web_endpoint}/models/{finetuned_model_name}",
+            "finetuned_model_name": finetuned_model_name,
         }
+        if job_data["status"].lower() == "succeeded":
+            res_data["finetuned_model_address"] = f"{config.web_endpoint}/models/{finetuned_model_name}"
 
     return res_data
 
