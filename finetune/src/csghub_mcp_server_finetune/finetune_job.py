@@ -13,6 +13,7 @@ from .api_client import (
     api_get_finetune_job,
     api_delete_finetune_job,
     api_create_finetune_job,
+    api_query_finetune_job_logs,
 )
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,17 @@ def register_finetune_job_control(mcp_instance: FastMCP):
     def delete_finetune_job_by_id(token: str, id: int) -> str:
         response_data = api_delete_finetune_job(token, id)
         return json.dumps(response_data)
+    
+    @mcp_instance.tool(
+        name="api_query_finetune_job_logs",
+        title="Get Finetune job logs by job ID",
+        description="Retrieve the finetune job logs by using a specific ID from CSGHub with user access token. This is useful for checking failure reasion and process details of finetune job. Parameter since can be one of 10mins, 30mins, 1hour, 6hours, 1day, 2days, 1week, and default is all.",
+        structured_output=True,
+    )
+    def get_finetune_job_logs_by_id(token: str, job_id: int, since = "all") -> str:
+        response_data = api_query_finetune_job_logs(token=token, job_id=job_id, since=since)
+        return json.dumps(response_data)
+
 
 def register_query_finetune_job_conditions(mcp_instance: FastMCP):
     @mcp_instance.tool(

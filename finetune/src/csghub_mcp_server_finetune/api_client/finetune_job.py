@@ -121,6 +121,24 @@ def api_create_finetune_job(token: str,
 
     return res_data
 
+def api_query_finetune_job_logs(token: str, job_id: int, since: str) -> dict:
+    config = get_csghub_config()
+
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{config.api_endpoint}/api/v1/finetunes/{job_id}/logs"
+    params = {
+        "since": since,
+        "stream": "false",
+    }
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code != 200:
+        logger.error(f"failed to get finetune job jobs on {url}: {response.text}")
+
+    response.raise_for_status()
+    json_data = response.json()
+    res_data = {"logs": json_data["data"]}
+    return res_data
+
 if __name__ == "__main__":
     token = ""
     model_id = "wanghh2003/Qwen3-0.6B"
