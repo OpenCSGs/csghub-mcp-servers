@@ -12,6 +12,10 @@ def api_get_available_runtime_frameworks(model_id: str, deploy_type: str) -> dic
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get avai resources on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     json_data = response.json()
     res_data = []
@@ -38,12 +42,19 @@ def api_get_available_runtime_frameworks_by_deploy_type(token: str, deploy_type:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get avai resources on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     response.raise_for_status()
     json_data = response.json()
 
     res_data = []
     res_list = json_data["data"] if json_data and "data" in json_data else []
+    if not isinstance(res_list, list):
+        return res_data
+    
     for res in res_list:
         if "compute_type" in res and res["compute_type"].lower() == "gpu" and "enabled" in res and res["enabled"] == 1:
             res_data.append({

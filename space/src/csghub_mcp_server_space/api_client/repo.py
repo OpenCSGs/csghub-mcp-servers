@@ -42,6 +42,10 @@ def upload_file(
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code != 201 and response.status_code != 200:
         logger.error(f"failed to upload file to {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()
@@ -68,6 +72,10 @@ def detail(
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get space id {space_id} detail: on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()

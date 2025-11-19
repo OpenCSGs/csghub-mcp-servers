@@ -17,6 +17,10 @@ def api_list_finetune_jobs(token: str, username: str, per: int = 10, page: int =
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list user finetune jobs on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -49,6 +53,10 @@ def api_get_finetune_job(token: str, job_id: int) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get finetune job on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -76,6 +84,10 @@ def api_delete_finetune_job(token: str, job_id: int) -> dict:
     response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to delete finetune job on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()
@@ -101,14 +113,13 @@ def api_create_finetune_job(token: str,
         "share_mode": False,
     }
     response = requests.post(url, headers=headers, json=data)
-    if response.status_code != 200 and response.status_code != 500:
+    if response.status_code != 200:
         logger.error(f"failed to create finetune job on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
-    # if response.status_code == 500:
-    #     logger.warning(f"failed to create finetune job on {url}: {response.text}")
-    #     return {"msg": "OK"}
-
-    response.raise_for_status()
     json_data = response.json()
     res_data = {}
     if json_data and "data" in json_data:
@@ -133,6 +144,10 @@ def api_query_finetune_job_logs(token: str, job_id: int, since: str) -> dict:
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to get finetune job jobs on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()

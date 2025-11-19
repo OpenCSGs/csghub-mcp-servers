@@ -15,6 +15,10 @@ def api_list_datasets(token: str, username: str, per: int = 10, page: int = 1) -
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list user datasets on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -37,6 +41,10 @@ def api_get_dataset_details(token: str, dataset_id: str) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get dataset details on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -79,6 +87,10 @@ def api_create_dataset(
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
         logger.error(f"failed to create dataset repo: {data} on {url} :{response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -100,6 +112,10 @@ def api_delete_dataset(token: str, dataset_id: str) -> dict:
     response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to delete dataset on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()
@@ -121,6 +137,10 @@ def api_find_datasets_by_name(token: str, name: str, page: int = 1, page_size: i
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to get searched datasets on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     response.raise_for_status()
     json_data = response.json()

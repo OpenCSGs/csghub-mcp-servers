@@ -11,6 +11,10 @@ def api_get_available_resources(cluster_id: str, deploy_type: str) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get avai resources on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     response.raise_for_status()
     json_data = response.json()
