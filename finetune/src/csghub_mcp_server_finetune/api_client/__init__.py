@@ -13,4 +13,5 @@ from .finetune_job import api_list_finetune_jobs
 from .finetune_job import api_get_finetune_job
 from .finetune_job import api_delete_finetune_job
 from .finetune_job import api_create_finetune_job
+from .finetune_job import api_query_finetune_job_logs
 from .dataset import api_get_dataset_detail
