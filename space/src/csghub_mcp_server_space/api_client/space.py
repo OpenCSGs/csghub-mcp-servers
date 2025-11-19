@@ -26,6 +26,10 @@ def start(
     response = requests.post(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to run space on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()
@@ -82,6 +86,10 @@ def create(
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code != 200:
         logger.error(f"failed to create space on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
         
     response.raise_for_status()
     json_data = response.json()
@@ -119,6 +127,10 @@ def stop(
     response = requests.post(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to stop space on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()
@@ -144,6 +156,10 @@ def delete(
     response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to delete space on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
         
     response.raise_for_status()
     return response.json()
@@ -170,6 +186,10 @@ def query_my_spaces(token: str, username: str, per: int = 10, page: int = 1) -> 
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list user spaces on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()

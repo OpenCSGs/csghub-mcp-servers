@@ -17,6 +17,10 @@ def api_list_inferences(token: str, username: str, per: int = 10, page: int = 1)
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list user inferences on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     json_data = response.json()
 
@@ -53,6 +57,10 @@ def api_get_inference_status(token: str, model_id: str, deploy_id: int) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get inferences status on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
 
@@ -108,6 +116,10 @@ def api_inference_create(
     response = requests.post(url, headers=headers, json=json_data)
     if response.status_code != 200:
         logger.error(f"failed to create model inference on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -125,6 +137,10 @@ def api_inference_stop(token: str, model_id: str, deploy_id: int):
     response = requests.put(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to stop model inference on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()
@@ -136,6 +152,10 @@ def api_inference_start(token: str, model_id: str, deploy_id: int):
     response = requests.put(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to start model inference on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()
@@ -147,6 +167,10 @@ def api_inference_delete(token: str, model_id: str, deploy_id: int):
     response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to delete model inference on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()

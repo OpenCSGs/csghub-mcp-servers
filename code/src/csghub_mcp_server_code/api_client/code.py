@@ -15,6 +15,10 @@ def api_list_codes(token: str, username: str, per: int = 10, page: int = 1) -> d
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list user codes on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -37,6 +41,10 @@ def api_get_code_details(token: str, code_id: str) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get code details on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -79,6 +87,10 @@ def api_create_code(
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
         logger.error(f"failed to create code repo: {data} on {url} :{response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -100,6 +112,10 @@ def api_delete_code(token: str, code_id: str) -> dict:
     response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to delete code on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()

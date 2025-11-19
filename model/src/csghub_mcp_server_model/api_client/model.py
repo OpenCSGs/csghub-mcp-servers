@@ -26,6 +26,10 @@ def api_top_download_models(num: int) -> dict:
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to get top {num} downloaded models on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     response.raise_for_status()
     json_data = response.json()
@@ -59,6 +63,10 @@ def api_list_user_models(token: str, username: str, per: int = 10, page: int = 1
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list user models on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -83,6 +91,10 @@ def api_get_model_details(token: str, model_id: str) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get model details on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -126,6 +138,10 @@ def api_create_model(
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
         logger.error(f"failed to create model repo: {data} on {url} :{response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -148,6 +164,10 @@ def api_delete_model(token: str, model_id: str) -> dict:
     response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to delete model on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()
@@ -170,6 +190,10 @@ def api_find_models_by_name(token: str, name: str, page: int = 1, page_size: int
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to get searched models on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     response.raise_for_status()
     json_data = response.json()

@@ -17,6 +17,10 @@ def api_list_jobs(token: str, per: int = 10, page: int = 1) -> dict:
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list dataflow jobs on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -42,6 +46,10 @@ def api_get_job_details(token: str, job_id: int, job_type: str = "data_refine") 
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get dataflow job details on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -85,6 +93,10 @@ def read_templates(token: str, page: int, page_size: int) -> list:
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to get dataflow templates on {url} :{response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     json_data = response.json()
 
@@ -108,6 +120,10 @@ def get_template_by_id(token: str, template_id: int) -> dict | None:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get dataflow template on {url} :{response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     template = None
     json_data = response.json()
@@ -161,6 +177,10 @@ def api_create_job(
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
         logger.error(f"failed to create dataflow job on {url} :{response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()
@@ -184,6 +204,10 @@ def api_delete_job(token: str, job_id: str) -> dict:
     response = requests.delete(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to delete dataflow job on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     return response.json()

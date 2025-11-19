@@ -19,6 +19,13 @@ def get_clusters(token: str) -> dict:
         "Authorization": f"Bearer {token}"
     }
     response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"Failed to fetch clusters: {response.status_code} - {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
+
     response.raise_for_status()
 
     json_data = response.json()

@@ -15,6 +15,10 @@ def api_get_namespaces_by_token(token: str) -> str:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get namespaces on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
 
     response.raise_for_status()
     json_data = response.json()

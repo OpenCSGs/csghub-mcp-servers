@@ -19,6 +19,10 @@ def get_opencompass_datasets(token: str) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get opencompass datasets on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     response.raise_for_status()
 

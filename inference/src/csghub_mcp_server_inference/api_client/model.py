@@ -11,6 +11,10 @@ def api_get_model_detail(model_id: str) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get model detail on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     response.raise_for_status()
     json_data = response.json()
@@ -29,6 +33,10 @@ def api_get_model_quantizations_list(model_id: str) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get model quantizations on {url}: {response.text}")
+        return {
+            "error_code": response.status_code,
+            "error_message": response.text,
+        }
     
     response.raise_for_status()
     return response.json()
