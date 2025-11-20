@@ -24,19 +24,36 @@ def api_get_available_resources(cluster_id: str, deploy_type: str) -> dict:
     res_list = json_data["data"] if json_data and "data" in json_data else []
     if not isinstance(res_list, list):
         return res_data
-    
+    print(res_list)
     for res in res_list:
+        skip = True
         if "type" in res and res["type"].lower() == "gpu" and "is_available" in res and res["is_available"] == True:
-            res_data.append({
-                "id": res["id"],
-                "type": res["type"],
-                "name": res["name"]
-            })
+            skip = False
+            
+        if skip:
+            continue
+
+        price = "free"
+        priceVal = res["price"] if "price" in res else 0.0
+        priceUnitVal = res["price_unit"] if "price_unit" in res else 0.0
+        priceUnitTypeVal = res["price_unit_type"] if "price_unit_type" in res else "minute"
+        if priceVal > 0 and priceUnitVal > 0:
+            if priceUnitTypeVal.lower() == "minute":
+                price = f"￥ {priceVal / 100} / {priceUnitVal/60} hour"
+            else:
+                price = f"￥ {priceVal / 100} / {priceUnitVal} {priceUnitTypeVal}"
+        
+        res_data.append({
+            "id": res["id"],
+            "type": res["type"],
+            "name": res["name"],
+            "price": f"{price}"
+        })
 
     return res_data
 
 if __name__ == "__main__":
-    cluster_id = "1b25151b-690b-42a4-b18b-aa1c86bd2696"
+    cluster_id = "cluster_id"
     deploy_type = "6"
     result = api_get_available_resources(cluster_id, deploy_type)
     print(result)
