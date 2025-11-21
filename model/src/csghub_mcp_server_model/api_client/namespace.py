@@ -1,6 +1,6 @@
 import requests
 import logging
-from .constants import get_csghub_config
+from .constants import get_csghub_config, wrap_error_response
 from .user import api_get_username_from_token
 
 logger = logging.getLogger(__name__)
@@ -15,10 +15,7 @@ def api_get_namespaces_by_token(token: str) -> str:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get namespaces on {url}: {response.text}")
-        return {
-            "error_code": response.status_code,
-            "error_message": response.text,
-        }
+        return wrap_error_response(response)
 
     response.raise_for_status()
     json_data = response.json()

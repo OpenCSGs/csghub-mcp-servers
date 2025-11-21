@@ -1,6 +1,6 @@
 import requests
 import logging
-from .constants import get_csghub_config
+from .constants import get_csghub_config, wrap_error_response
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +19,7 @@ def get_opencompass_models(token: str) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get opencompass models on {url}: {response.text}")
-        return {
-            "error_code": response.status_code,
-            "error_message": response.text,
-        }
+        return wrap_error_response(response)
     
     response.raise_for_status()
     json_data = response.json()
@@ -56,10 +53,7 @@ def get_model_runtime_framework(token: str, model_id: str, deploy_type: int) -> 
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get model runtime framework on {url}: {response.text}")
-        return {
-            "error_code": response.status_code,
-            "error_message": response.text,
-        }
+        return wrap_error_response(response)
     
     json_data = response.json()
     res_data = []
