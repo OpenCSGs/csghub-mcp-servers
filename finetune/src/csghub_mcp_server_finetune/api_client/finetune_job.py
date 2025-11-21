@@ -87,7 +87,7 @@ def api_create_finetune_job(token: str,
                             model_id: str, dataset_id: str, 
                             rf_id: int, res_id: int, 
                             epochs: int = 1, learning_rate: float = 0.0001,
-                            agents: str = "") -> dict:
+                            agent: str = "") -> dict:
     config = get_csghub_config()
 
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
@@ -103,7 +103,7 @@ def api_create_finetune_job(token: str,
         "epochs": epochs,
         "learning_rate": learning_rate,
         "share_mode": False,
-        "agents": agents,
+        "agent": agent,
     }
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
