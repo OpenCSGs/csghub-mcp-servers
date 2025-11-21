@@ -30,8 +30,9 @@ def api_list_finetune_jobs(token: str, username: str, per: int = 10, page: int =
     for res in res_list:
         finetuned_model_name = res["result_url"]
         job = {
-            "id": res["id"],
+            "job_id": res["id"],
             "task_name": res["task_name"],
+            "task_id": res["task_id"],
             "status": res["status"],
             "finetuned_model_name": finetuned_model_name,
         }
@@ -60,7 +61,8 @@ def api_get_finetune_job(token: str, job_id: int) -> dict:
         job_data = json_data["data"]
         finetuned_model_name = job_data["result_url"]
         res_data = {
-            "id": job_data["id"],
+            "job_id": job_data["id"],
+            "task_id": job_data["task_id"],
             "task_name": job_data["task_name"],
             "status": job_data["status"],
             "finetuned_model_name": finetuned_model_name,
@@ -115,7 +117,8 @@ def api_create_finetune_job(token: str,
     if json_data and "data" in json_data:
         job_data = json_data["data"]
         res_data = {
-            # "id": job_data["id"],
+            "job_id": job_data["id"],
+            "task_id": job_data["task_id"],
             "task_name": job_data["task_name"],
             "status": job_data["status"],
         }

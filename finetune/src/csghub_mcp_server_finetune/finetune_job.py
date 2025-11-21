@@ -59,8 +59,8 @@ def register_finetune_job_control(mcp_instance: FastMCP):
         description="Retrieve the finetune job details and status by using a specific ID from CSGHub with user access token. This is useful for checking the status of a deployed finetune job.",
         structured_output=True,
     )
-    def get_finetune_job_by_id(token: str, id: int) -> str:
-        response_data = api_get_finetune_job(token, id)
+    def get_finetune_job_by_id(token: str, job_id: int) -> str:
+        response_data = api_get_finetune_job(token, job_id)
         return json.dumps(response_data)
     
     @mcp_instance.tool(
@@ -69,8 +69,8 @@ def register_finetune_job_control(mcp_instance: FastMCP):
         description="Delete the finetune jobby using a specific ID from CSGHub with user access token.",
         structured_output=True,
     )
-    def delete_finetune_job_by_id(token: str, id: int) -> str:
-        response_data = api_delete_finetune_job(token, id)
+    def delete_finetune_job_by_id(token: str, job_id: int) -> str:
+        response_data = api_delete_finetune_job(token, job_id)
         return json.dumps(response_data)
     
     @mcp_instance.tool(
