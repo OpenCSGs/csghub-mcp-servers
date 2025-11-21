@@ -107,14 +107,15 @@ def register_finetune_job_create(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="deploy_finetune_job",
         title="Deploy finetune job by model_id/dataset_id/runtime_framework_id/resource_id",
-        description="Deploy finetune job by a specific model ID and dataset ID from CSGHub with user access token. User have to provide model_id, dataset_id, runtime_framework_id, resource_id to deploy finetune service, epochs and learning rate are optional parameters. GPU resources are required.",
+        description="Deploy finetune job by a specific model ID and dataset ID from CSGHub with user access token. User have to provide model_id, dataset_id, runtime_framework_id, resource_id to deploy finetune service, epochs and learning rate are optional parameters. GPU resources are required. The parameter agents is optional and can be used to specify the agent configuration for the finetune job.",
         structured_output=True,
     )
     def deploy_finetune_job(
         token: str,
         model_id: str, dataset_id: str,
         resource_id: int, runtime_framework_id: int,
-        epochs: int = 1, learning_rate: float = 0.0001
+        epochs: int = 1, learning_rate: float = 0.0001,
+        agents: str = "",
     ) -> str:
         json_data = api_get_model_detail(token, model_id)
         if "model_id" not in json_data:
@@ -132,6 +133,7 @@ def register_finetune_job_create(mcp_instance: FastMCP):
             res_id=resource_id,
             epochs=epochs,
             learning_rate=learning_rate,
+            agents=agents,
         )
         return json.dumps(json_data)
 
