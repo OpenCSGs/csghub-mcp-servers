@@ -81,7 +81,7 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="deploy_model_as_inference_by_model_id",
         title="Deploy model as inference service by model_id/runtime_framework_id/resource_id",
-        description="Deploy model as inference service by a specific model_id from CSGHub with user access token. User have to provide model_id, runtime_framework_id, resource_id to deploy model as inference service. gguf_quantization_name is optional and only required for GGUF model. The parameter agents is optional and can be used to specify the agent configuration for inference.",
+        description="Deploy model as inference service by a specific model_id from CSGHub with user access token. User have to provide model_id, runtime_framework_id, resource_id to deploy model as inference service. gguf_quantization_name is optional and only required for GGUF model. The parameter agent is optional and can be used to specify the agent configuration for inference.",
         structured_output=True,
     )
     def deploy_model_as_inference_by_model_id(
@@ -90,7 +90,7 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
         resource_id: int,
         runtime_framework_id: int,
         gguf_quantization_name: str = "",
-        agents: str = "",
+        agent: str = "",
     ) -> str:
         json_data = api_inference_create(
             token=token,
@@ -99,7 +99,7 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
             runtime_framework_id=runtime_framework_id,
             resource_id=resource_id,
             entrypoint=gguf_quantization_name,
-            agents=agents,
+            agent=agent,
         )
         return json.dumps(json_data)
 

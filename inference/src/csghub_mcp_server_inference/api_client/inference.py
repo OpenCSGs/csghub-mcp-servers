@@ -98,7 +98,7 @@ def api_inference_create(
     runtime_framework_id: int,
     resource_id: int,
     entrypoint: str,
-    agents: str = "",
+    agent: str = "",
 ):
     config = get_csghub_config()
     headers = {"Authorization": f"Bearer {token}"}
@@ -117,7 +117,7 @@ def api_inference_create(
         "revision": "main",
         "secure_level": 1,
         "entrypoint": entrypoint,
-        "agents": agents,
+        "agent": agent,
     }
     response = requests.post(url, headers=headers, json=json_data)
     if response.status_code != 200:
