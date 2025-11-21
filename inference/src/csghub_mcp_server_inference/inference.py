@@ -18,8 +18,6 @@ from .api_client import (
 
 logger = logging.getLogger(__name__)
 
-cluster_id = os.getenv("CLUSTER_ID", "ab45d3ba-a2ff-466e-887a-b2e5c0c070c5")
-
 def register_inference_tools(mcp_instance: FastMCP):
     register_inference_list(mcp_instance=mcp_instance)
     register_inference_query(mcp_instance=mcp_instance)
@@ -87,6 +85,7 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
     def deploy_model_as_inference_by_model_id(
         token: str,
         model_id: str,
+        cluster_id: str,
         resource_id: int,
         runtime_framework_id: int,
         gguf_quantization_name: str = "",
@@ -106,13 +105,13 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
 def register_query_inference_conditions(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="query_available_resources_and_runtime_frameworks_for_inference",
-        title="Query available resources and runtime frameworks for deploying model as inference service",
+        title="Query available resources and runtime frameworks for deploying model as inference service with user access token.",
         description="Retrieve a list of available resources and runtime frameworks that can be used for deploying model as inference on CSGHub. Retrieve gguf quantization list for model id of GGUF model.",
         structured_output=True,
     )
-    def query_available_resources_and_runtime_frameworks_for_inference(model_id: str) -> str:
+    def query_available_resources_and_runtime_frameworks_for_inference(token: str, model_id: str) -> str:
         deploy_type = "1"
-        res_json_data = api_get_available_resources(cluster_id, deploy_type)
+        res_json_data = api_get_available_resources(token, deploy_type)
         run_json_data = api_get_available_runtime_frameworks(model_id, deploy_type)
         gguf_json_data = api_get_model_quantizations_list(model_id)
         return json.dumps({

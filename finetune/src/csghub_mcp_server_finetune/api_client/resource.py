@@ -4,7 +4,18 @@ from .constants import get_csghub_config, wrap_error_response
 
 logger = logging.getLogger(__name__)
 
-def api_get_available_resources(cluster_id: str, deploy_type: str) -> dict:
+def api_get_available_resources(deploy_type: str) -> dict:
+    config = get_csghub_config()
+    ids = [id.strip() for id in config.cluster_ids.split(",") if id.strip()]
+    res_data = []
+    for cluster_id in ids:
+        res = api_get_available_resources_by_cluster_id(cluster_id, deploy_type)
+        if res and isinstance(res, list):
+            res_data.append(res)
+
+    return res_data
+
+def api_get_available_resources_by_cluster_id(cluster_id: str, deploy_type: str) -> list:
     config = get_csghub_config()
 
     headers = {"Content-Type": "application/json"}
@@ -19,6 +30,7 @@ def api_get_available_resources(cluster_id: str, deploy_type: str) -> dict:
 
     res_data = []
     res_list = json_data["data"] if json_data and "data" in json_data else []
+    
     if not isinstance(res_list, list):
         return res_data
 
