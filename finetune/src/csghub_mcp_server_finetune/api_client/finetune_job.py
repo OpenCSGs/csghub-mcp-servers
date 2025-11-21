@@ -115,7 +115,7 @@ def api_create_finetune_job(token: str,
     if json_data and "data" in json_data:
         job_data = json_data["data"]
         res_data = {
-            "id": job_data["id"],
+            # "id": job_data["id"],
             "task_name": job_data["task_name"],
             "status": job_data["status"],
         }
