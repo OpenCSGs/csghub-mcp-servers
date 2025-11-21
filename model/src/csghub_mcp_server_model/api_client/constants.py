@@ -13,3 +13,9 @@ class CSGHubConfig:
 def get_csghub_config() -> CSGHubConfig:
     return CSGHubConfig()
 
+def wrap_error_response(response) -> dict:
+    return {
+        "error_code": response.status_code,
+        "error_message": response.text,
+    }
+

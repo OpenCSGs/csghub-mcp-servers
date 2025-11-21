@@ -1,6 +1,6 @@
 import requests
 import logging
-from .constants import get_csghub_config
+from .constants import get_csghub_config, wrap_error_response
 from .user import api_get_username_from_token
 
 logger = logging.getLogger(__name__)
@@ -34,10 +34,7 @@ def list_evaluations(token: str, per: int = 10, page: int = 1) -> dict:
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list user evaluations on {url}: {response.text}")
-        return {
-            "error_code": response.status_code,
-            "error_message": response.text,
-        }
+        return wrap_error_response(response)
 
     response.raise_for_status()
     json_data = response.json()
@@ -75,10 +72,7 @@ def get_evaluation_details(token: str, id: int) -> dict:
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
         logger.error(f"failed to get eval details on {url}: {response.text}")
-        return {
-            "error_code": response.status_code,
-            "error_message": response.text,
-        }
+        return wrap_error_response(response)
 
     response.raise_for_status()
 
@@ -137,10 +131,7 @@ def create_evaluation(token: str,
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code != 200:
         logger.error(f"failed to create evaluation on {url}: {response.text}")
-        return {
-            "error_code": response.status_code,
-            "error_message": response.text,
-        }
+        return wrap_error_response(response)
     
     response.raise_for_status()
     json_data = response.json()
@@ -176,10 +167,7 @@ def delete_evaluation(token: str, evaluation_id: int) -> dict:
     response = requests.delete(url, headers=headers)
     if response.status_code not in [200, 204]:
         logger.error(f"failed to delete evaluation on {url}: {response.text}")
-        return {
-            "error_code": response.status_code,
-            "error_message": response.text,
-        }
+        return wrap_error_response(response)
 
     response.raise_for_status()
     if response.status_code == 204:

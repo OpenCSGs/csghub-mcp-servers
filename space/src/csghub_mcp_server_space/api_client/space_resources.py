@@ -1,6 +1,6 @@
 import requests
 import logging
-from .constants import get_csghub_config
+from .constants import get_csghub_config, wrap_error_response
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +33,7 @@ def get_space_resources(token: str, cluster_id: str, deploy_type: int) -> dict:
     response = requests.get(url, headers=headers, params=params)
     if response.status_code != 200:
         logger.error(f"failed to list space resources on {url}: {response.text}")
-        return {
-            "error_code": response.status_code,
-            "error_message": response.text,
-        }
+        return wrap_error_response(response)
 
     response.raise_for_status()
     json_data = response.json()
