@@ -33,7 +33,7 @@ def register_finetune_job_list(mcp_instance: FastMCP):
         description="Retrieve a list of finetune jobs for a specific user from CSGHub. You can control the pagination by specifying the number of items per page and the page number.",
         structured_output=True,
     )
-    def list_finetune_jobs(token: str, per: int = 10, page: int = 1) -> str:
+    def list_finetune_jobs(token: str, per: int = 50, page: int = 1) -> str:
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
         
