@@ -38,12 +38,13 @@ def register_inference_list(mcp_instance: FastMCP):
     )
     def list_inference(token: str, per: int = 10, page: int = 1) -> str:
         if not token:
-            return "Error: must input CSGHUB_ACCESS_TOKEN."
+            return "error: must input CSGHUB_ACCESS_TOKEN."
+        
         try:
             username = api_get_username_from_token(token)
         except Exception as e:
-            logger.error(f"Error calling user token API: {e}")
-            return f"Error: Failed to get username. {e}"
+            logger.error(f"error calling user token API: {e}")
+            return f"error: Failed to get username. {e}"
 
         logger.info(f"Listing inference services for user: {username}")
         
@@ -51,8 +52,8 @@ def register_inference_list(mcp_instance: FastMCP):
             inferences = api_list_inferences(token, username, per, page)
             return json.dumps(inferences)
         except Exception as e:
-            logger.error(f"Error calling inference API: {e}")
-            return f"Error: Failed to list inference services. {e}"
+            logger.error(f"error calling inference API: {e}")
+            return f"error: Failed to list inference services. {e}"
 
 def register_inference_query(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -80,7 +81,7 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="deploy_model_as_inference_by_model_id",
         title="Deploy model as inference service by model_id/runtime_framework_id/resource_id",
-        description="Deploy model as inference service by a specific model_id from CSGHub with user access token. User have to provide model_id, runtime_framework_id, resource_id to deploy model as inference service. gguf_quantization_name is optional and only required for GGUF model.",
+        description="Deploy model as inference service by a specific model_id from CSGHub with user access token. User have to provide model_id, runtime_framework_id, resource_id to deploy model as inference service. gguf_quantization_name is optional and only required for GGUF model. The parameter agents is optional and can be used to specify the agent configuration for inference.",
         structured_output=True,
     )
     def deploy_model_as_inference_by_model_id(
@@ -89,6 +90,7 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
         resource_id: int,
         runtime_framework_id: int,
         gguf_quantization_name: str = "",
+        agents: str = "",
     ) -> str:
         json_data = api_inference_create(
             token=token,
@@ -96,7 +98,8 @@ def register_deploy_model_inference(mcp_instance: FastMCP):
             cluster_id=cluster_id,
             runtime_framework_id=runtime_framework_id,
             resource_id=resource_id,
-            endpoint=gguf_quantization_name,
+            entrypoint=gguf_quantization_name,
+            agents=agents,
         )
         return json.dumps(json_data)
 
