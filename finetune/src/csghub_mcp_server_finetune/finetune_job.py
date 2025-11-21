@@ -18,8 +18,6 @@ from .api_client import (
 
 logger = logging.getLogger(__name__)
 
-cluster_id = os.getenv("CLUSTER_ID", "ab45d3ba-a2ff-466e-887a-b2e5c0c070c5")
-
 def register_finetune_job_tools(mcp_instance: FastMCP):
     register_finetune_job_list(mcp_instance=mcp_instance)
     register_finetune_job_control(mcp_instance=mcp_instance)
@@ -95,7 +93,7 @@ def register_query_finetune_job_conditions(mcp_instance: FastMCP):
     )
     def query_avai_res_and_frameworks_for_finetune_job(token: str) -> str:
         deploy_type = "6"
-        res_json_data = api_get_available_resources(cluster_id, deploy_type)
+        res_json_data = api_get_available_resources(deploy_type)
         run_json_data = api_get_available_runtime_frameworks_by_deploy_type(token, deploy_type)
 
         return json.dumps({
