@@ -42,7 +42,8 @@ def create(
     private: bool = False,
     order_detail_id: int = 0,
     env: str = "",
-    secrets: str = ""
+    secrets: str = "",
+    min_replica: int = 0,
 ) -> dict:
     """Create a new space.
     
@@ -78,7 +79,8 @@ def create(
         "private": private,
         "order_detail_id": order_detail_id,
         "env": env,
-        "secrets": secrets
+        "secrets": secrets,
+        "min_replica": min_replica,
     }
     response = requests.post(url, headers=headers, json=payload)
     if response.status_code != 200:
