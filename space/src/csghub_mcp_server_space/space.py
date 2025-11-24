@@ -4,10 +4,11 @@ import base64
 from mcp.server.fastmcp import FastMCP
 from .api_client import (
     api_get_username_from_token,
+    resources,
     user,
 )
 from .api_client import (
-    space, repo, space_resources, cluster,
+    space, repo, cluster,
     query_my_spaces,
     api_get_namespaces_by_token,
 )
@@ -16,13 +17,12 @@ logger = logging.getLogger(__name__)
 
 def register_space_tools(mcp_instance: FastMCP):
     register_space_create(mcp_instance)
-    register_space_start(mcp_instance) 
-    register_space_delete(mcp_instance) 
+    register_space_start(mcp_instance)
     register_space_stop(mcp_instance)
-    register_file_upload(mcp_instance)
+    register_space_delete(mcp_instance) 
+    # register_file_upload(mcp_instance)
     register_space_detail(mcp_instance)
     register_list_my_space_tool(mcp_instance)
-
 
 def register_space_create(mcp_instance: FastMCP):
 
@@ -42,6 +42,7 @@ Parameters:
 - `order_detail_id` (int, optional): Order detail ID.
 - `env` (str, optional): Environment variables for the space.
 - `secrets` (str, optional): Secrets for the space.
+- `min_replica` (int, optional, default: 0): Minimum number of replicas for the space.
 The final response includes results for creation, uploads, and the run attempt. 
 In response, ["namespace"]["path"] can be used as namespace for other tool""",
         structured_output=True,
@@ -57,7 +58,8 @@ In response, ["namespace"]["path"] can be used as namespace for other tool""",
         private: bool = False,
         order_detail_id: int = 0,
         env: str = "",
-        secrets: str = ""
+        secrets: str = "",
+        min_replica: int = 0,
     ) -> str:
         """
         Create a new CSGHub space, upload files, and run it.
@@ -81,134 +83,76 @@ In response, ["namespace"]["path"] can be used as namespace for other tool""",
                 return f"Error: Failed to get username. {e}"
         
         resp = {}
-        try:
-            create_resp = space.create(
-                token=token,
-                name=name,
-                namespace=namespace,
-                resource_id=resource_id,
-                cluster_id=cluster_id,
-                sdk=sdk,
-                license=license,
-                private=private,
-                order_detail_id=order_detail_id,
-                env=env,
-                secrets=secrets
-            )
-            resp['create_result'] = create_resp
-            namespace = create_resp["space_id"].split('/')[0]
-            if 'space_id' in create_resp:
-                file = {
-                    'name': 'app.py',
-                    'content': '''import gradio as gr
+
+        create_resp = space.create(
+            token=token,
+            name=name,
+            namespace=namespace,
+            resource_id=resource_id,
+            cluster_id=cluster_id,
+            sdk=sdk,
+            license=license,
+            private=private,
+            order_detail_id=order_detail_id,
+            env=env,
+            secrets=secrets,
+            min_replica=min_replica,
+        )
+        resp['create_result'] = create_resp
+        if "space_id" not in create_resp:
+            return json.dumps(resp)
+        
+        namespace = create_resp["space_id"].split('/')[0]
+        file = {
+            'name': 'app.py',
+            'content': '''import gradio as gr
 
 def greet(name):
-    return "Hello " + name + "!!"
+return "Hello " + name + "!!"
 
 iface = gr.Interface(fn=greet, inputs="text", outputs="text")
 iface.launch()'''
-                    }
-                    
-                file_name = file.get('name')
-                file_content = file.get('content')
+                }
+   
+        file_name = file.get('name')
+        file_content = file.get('content')
 
-                try:
-                    encoded_content = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
-                    upload_resp = repo.upload_file(
-                        token=token,
-                        namespace=namespace,
-                        repo_name=name,
-                        file_path=file_name,
-                        content=encoded_content,
-                        repo_type="space",
-                        branch="main"
-                    ) 
-                    resp['upload_result'] = upload_resp
-                except Exception as upload_e:
-                    logger.error(f"Failed to upload file {file_name}: {upload_e}")
-                    resp['upload_result'] = {'error': f"Failed to upload file: {str(upload_e)}"}
-                
-                try:
-                    space_id = f"{namespace}/{name}"
-                    run_resp = space.start(
-                        token=token,
-                        space_id=space_id,
-                    )
-                    resp['run_result'] = run_resp
-                except Exception as run_e:
-                    logger.error(f"Failed to run space {name}: {run_e}")
-                    resp['run_result'] = {'error': f"Failed to run space: {str(run_e)}"}
+        encoded_content = base64.b64encode(file_content.encode('utf-8')).decode('utf-8')
+        upload_resp = repo.upload_file(
+            token=token,
+            namespace=namespace,
+            repo_name=name,
+            file_path=file_name,
+            content=encoded_content,
+            repo_type="space",
+            branch="main"
+        ) 
+        resp['upload_result'] = upload_resp
 
-            return json.dumps(resp)
-        except Exception as e:
-            logger.error(f"Error during core transaction (create, upload, or run): {e}")
-            return f"Error: Failed during the core operation (create, upload, or run). {e}"
+        return json.dumps(resp)
+
 
     @mcp_instance.tool(
-        name="get_space_resource_by_cluster_id",
-        title="Get available space resources by cluster_id",
-        description="Get available space resources. Parameters: `token` (str, required): User's API token. `cluster_id` (str, optional): ID of the cluster. If not provided, the first available cluster will be used.",
+        name="get_space_available_resource",
+        title="Get available space resources",
+        description="Get available space resources. Parameters: `token` (str, required): User's API token.",
         structured_output=True,
     )
-    def get_space_resource_by_cluster_id(
+    def get_space_available_resource(
         token: str,
-        cluster_id: str = ""
     ) -> str:
-        """
-        Get available space resources.
-
-        Args:
-            token: User's API token.
-            cluster_id: ID of the cluster.
-        """
-
         if not token:
             return "Error: The 'token' parameter is required."
 
         try:
-            final_cluster_id = cluster_id
-            if not final_cluster_id:
-                clusters = cluster.get_clusters(token=token)
-                if clusters and len(clusters) > 0:
-                    final_cluster_id = clusters[0].get('id')
-                else:
-                    return "Error: No available clusters found."
-
-            resp = space_resources.get_space_resources(
+            resp = resources.api_get_available_resources(
                 token=token,
-                cluster_id=final_cluster_id,
                 deploy_type=0
             )
             return json.dumps(resp)
         except Exception as e:
             logger.error(f"Error calling get space resource API: {e}")
             return f"Error: Failed to get space resource. {e}"
-
-    @mcp_instance.tool(
-        name="get_space_clusters",
-        title="Get all available space clusters",
-        description="Get all available space clusters. Parameters: `token` (str, required): User's API token.",
-        structured_output=True,
-    )
-    def get_space_clusters(
-        token: str,
-    ) -> str:
-        """
-        Get all available space clusters.
-
-        Args:
-            token: User's API token.
-        """
-
-        if not token:
-            return "Error: The 'token' parameter is required."
-
-        try:
-            resp = cluster.get_clusters(token=token)
-            return json.dumps(resp)
-        except Exception as e:
-            logger.error(f"Error calling get clusters API: {e}")
-            return f"Error: Failed to get clusters. {e}"
 
     @mcp_instance.tool(
         name="get_user_namespaces",
@@ -387,7 +331,6 @@ def register_space_detail(mcp_instance: FastMCP):
         except Exception as e:
             logger.error(f"Error calling get space detail API: {e}")
             return f"Error: Failed to get space detail. {e}"
-
 
 def register_space_delete(mcp_instance: FastMCP):
 
