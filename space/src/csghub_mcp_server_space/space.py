@@ -108,7 +108,7 @@ In response, ["namespace"]["path"] can be used as namespace for other tool""",
             'content': '''import gradio as gr
 
 def greet(name):
-return "Hello " + name + "!!"
+    return "Hello " + name + "!!"
 
 iface = gr.Interface(fn=greet, inputs="text", outputs="text")
 iface.launch()'''
