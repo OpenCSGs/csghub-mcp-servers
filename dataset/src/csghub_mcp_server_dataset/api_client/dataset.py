@@ -225,6 +225,7 @@ def upload_issue_data(
     if "msg" in json_data or json_data["msg"].lower() == "ok":
         access_url = f"{config.web_endpoint}/datasets/{dataset_id}?tab=files&actionName=files&branch={branch}"
         json_data["access_url"] = access_url
+        json_data["file_name"] = file_name
         
     return json_data
 
