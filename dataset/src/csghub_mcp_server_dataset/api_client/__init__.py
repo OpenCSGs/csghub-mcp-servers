@@ -5,3 +5,7 @@ from .dataset import api_create_dataset
 from .dataset import api_delete_dataset
 from .dataset import api_find_datasets_by_name
 from .namespace import api_get_namespaces_by_token
+from .dataset import get_issue_data
+from .dataset import upload_issue_data
+from .dataset import api_create_dataset_new_branch
+from .dataset import api_list_dataset_branchs
