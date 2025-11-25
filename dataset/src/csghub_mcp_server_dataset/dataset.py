@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 import json
 from .api_client import (
@@ -9,6 +10,10 @@ from .api_client import (
     api_create_dataset,
     api_delete_dataset,
     api_find_datasets_by_name,
+    get_issue_data,
+    upload_issue_data,
+    api_create_dataset_new_branch,
+    api_list_dataset_branchs,
 )
 
 logger = logging.getLogger(__name__)
@@ -20,6 +25,7 @@ def register_dataset_tools(mcp_instance: FastMCP):
     register_dataset_delete(mcp_instance=mcp_instance)
     register_namespace_tools(mcp_instance=mcp_instance)
     register_dataset_query_tools(mcp_instance=mcp_instance)
+    register_upload_issue_dataset(mcp_instance=mcp_instance)
 
 def register_dataset_query_tools(mcp_instance: FastMCP):
     @mcp_instance.tool(
@@ -112,11 +118,46 @@ def register_dataset_delete(mcp_instance: FastMCP):
 
 def register_namespace_tools(mcp_instance: FastMCP):
     @mcp_instance.tool(
-        name="list_namespaces",
+        name="list_user_namespaces",
         title="List available namespaces or organizations for a user from CSGHub",
         description="Retrieve a list of namespaces or organizations that a user has access to create dataset repos from CSGHub with user access token.",
         structured_output=True,
     )
-    def list_namespaces(token: str) -> str:
+    def list_user_namespaces(token: str) -> str:
         namespaces = api_get_namespaces_by_token(token)
         return json.dumps(namespaces)
+
+def register_upload_issue_dataset(mcp_instance: FastMCP):
+    @mcp_instance.tool(
+        name="upload_issue_latest_qa_to_dataset",
+        title="Retrieve and upload csghub issue latest QA records to dataset.",
+        description="Retrieve and upload csghub issue latest QA records to a branch of dataset on CSGHub with access token. The default branch is main. The default file name is records_vYYYYMMDD-HHMMSS.json to save.",
+        structured_output=True,
+    )
+    def upload_issue_latest_qa_to_dataset(token: str, dataset_id: str, branch: str = "main", file_name: str = "") -> str:
+        branches = api_list_dataset_branchs(token, dataset_id)
+        if not isinstance(branches, list):
+            return json.dumps(branches)
+        
+        if not branch in set(branches):
+            new_branch = api_create_dataset_new_branch(token, dataset_id, branch)
+            if "msg" not in new_branch or new_branch["msg"].lower() != "ok":
+                return json.dumps(new_branch)
+        
+        records = []
+        try:
+            records = get_issue_data()
+            if not isinstance(records, list):
+                return json.dumps(records)
+        except Exception as e:
+            return f"Error: Failed to retrieve issue QA records - {e}"
+
+        if len(records) < 1:
+            return f"Error: No any issue records found."
+        
+        if file_name is None or file_name == "":
+            file_name = f"records_v{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
+            
+        upload_result = upload_issue_data(token, dataset_id, branch, records, file_name)
+
+        return json.dumps(upload_result)

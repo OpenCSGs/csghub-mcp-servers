@@ -1,6 +1,11 @@
 import requests
 import logging
-from .constants import get_csghub_config, wrap_error_response
+import base64
+from .constants import (
+    get_csghub_config, 
+    wrap_error_response, 
+    GIT_ATTRIBUTES_CONTENT
+)
 
 logger = logging.getLogger(__name__)
 
@@ -142,3 +147,97 @@ def api_find_datasets_by_name(token: str, name: str, page: int = 1, page_size: i
         })
 
     return {"total_found": total, "datasets": res_data}
+
+def api_list_dataset_branchs(token: str, dataset_id: str) -> dict:
+    config = get_csghub_config()
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+    url = f"{config.api_endpoint}/api/v1/datasets/{dataset_id}/branches"
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to get dataset branchs on {url}: {response.text}")
+        return wrap_error_response(response)
+    
+    json_data = response.json()
+    res_data = []
+    res_list = json_data["data"] if json_data and "data" in json_data else []
+    if not isinstance(res_list, list):
+        return res_data
+    
+    for res in res_list:
+        res_data.append(res["name"])
+    
+    return res_data
+
+def api_create_dataset_new_branch(token: str, dataset_id: str, new_branch: str) -> dict:
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/datasets/{dataset_id}/raw/.gitattributes"
+    
+    GIT_ATTRIBUTES_CONTENT_BASE64 = base64.b64encode(GIT_ATTRIBUTES_CONTENT.encode()).decode()
+
+    data = {
+        "message": f"create new branch {new_branch} in mcp",
+        "new_branch": new_branch,
+        "content": GIT_ATTRIBUTES_CONTENT_BASE64
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
+    }
+    response = requests.post(url, json=data, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to create branch on {url} response: {response.text}")
+        return wrap_error_response(response)
+
+    json_data = response.json()
+    return json_data
+
+def upload_issue_data(
+    token: str,
+    dataset_id: str,
+    branch: str,
+    content: list,
+    file_name: str,
+) -> dict:
+    config = get_csghub_config()
+    url = f"{config.api_endpoint}/api/v1/datasets/{dataset_id}/raw/{file_name}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    content_str = '\n'.join(content)
+    encoded_content = base64.b64encode(content_str.encode('utf-8')).decode('utf-8')
+    payload = {
+        "content": encoded_content,
+        "message": f"Upload {file_name}",
+        "branch": branch,
+        "new_branch": branch
+    }
+    response = requests.post(url, headers=headers, json=payload)
+    if response.status_code != 201 and response.status_code != 200:
+        logger.error(f"failed to upload file to {url}: {response.text}")
+        return wrap_error_response(response)
+
+    json_data = response.json()
+
+    if "msg" in json_data or json_data["msg"].lower() == "ok":
+        access_url = f"{config.web_endpoint}/datasets/{dataset_id}?tab=files&actionName=files&branch={branch}"
+        json_data["access_url"] = access_url
+        
+    return json_data
+
+def get_issue_data():
+    config = get_csghub_config()
+    headers = {
+        "Content-Type": "application/json",
+    }
+    url = f"{config.issue_endpoint}/latest-qa"
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        logger.error(f"failed to get issue qa on {url}: {response.text}")
+        return wrap_error_response(response)
+    
+    json_data = response.json()    
+    return json_data
