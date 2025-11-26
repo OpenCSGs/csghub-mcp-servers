@@ -28,7 +28,7 @@ def register_dataflow_list(mcp_instance: FastMCP):
         description="Retrieve a list of dataflow jobs for a specific user from CSGHub with user access token. You can control the pagination by specifying the number of items per page and the page number.",
         structured_output=True,
     )
-    def list_user_dataflow_jobs(token: str, per: int = 10, page: int = 1) -> str:
+    def list_user_dataflow_jobs(token: str, per: int = 50, page: int = 1) -> str:
         if not token:
             return "Error: must input CSGHUB_ACCESS_TOKEN."
         
@@ -98,7 +98,7 @@ def register_dataflow_template_list(mcp_instance: FastMCP):
         description="Retrieve a list of available dataflow templates from CSGHub with user access token. You can control the pagination by specifying the number of items per page and the page number.",
         structured_output=True,
     )
-    def query_dataflow_templates(token: str, page: int = 1, page_size: int = 20) -> str:
+    def query_dataflow_templates(token: str, page: int = 1, page_size: int = 50) -> str:
         json_data = api_get_template_list(token=token, page=page, page_size=page_size)
         return json.dumps(json_data)
 
