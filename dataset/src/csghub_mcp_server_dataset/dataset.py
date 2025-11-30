@@ -156,7 +156,7 @@ def register_upload_issue_dataset(mcp_instance: FastMCP):
             return f"Error: No any issue records found."
         
         if file_name is None or file_name == "":
-            file_name = f"records_v{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
+            file_name = f"records_v{datetime.now().strftime('%Y%m%d-%H%M%S')}.jsonl"
             
         upload_result = upload_issue_data(token, dataset_id, branch, records, file_name)
 
