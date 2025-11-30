@@ -131,7 +131,7 @@ def register_upload_issue_dataset(mcp_instance: FastMCP):
     @mcp_instance.tool(
         name="upload_issue_latest_qa_to_dataset",
         title="Retrieve and upload csghub issue latest QA records to dataset.",
-        description="Retrieve and upload csghub issue latest QA records to a branch of dataset on CSGHub with access token. The default branch is main. The default file name is records_vYYYYMMDD-HHMMSS.json to save.",
+        description="Retrieve and upload csghub issue latest QA records to a branch of dataset on CSGHub with access token. The default branch is main. The default file name is records_vYYYYMMDD-HHMMSS.jsonl to save.",
         structured_output=True,
     )
     def upload_issue_latest_qa_to_dataset(token: str, dataset_id: str, branch: str = "main", file_name: str = "") -> str:
@@ -156,7 +156,7 @@ def register_upload_issue_dataset(mcp_instance: FastMCP):
             return f"Error: No any issue records found."
         
         if file_name is None or file_name == "":
-            file_name = f"records_v{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
+            file_name = f"records_v{datetime.now().strftime('%Y%m%d-%H%M%S')}.jsonl"
             
         upload_result = upload_issue_data(token, dataset_id, branch, records, file_name)
 
