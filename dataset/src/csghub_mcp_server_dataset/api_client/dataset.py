@@ -235,7 +235,7 @@ def get_issue_data():
         "Content-Type": "application/json",
     }
     url = f"{config.issue_endpoint}/latest-qa"
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, verify=False)
     if response.status_code != 200:
         logger.error(f"failed to get issue qa on {url}: {response.text}")
         return wrap_error_response(response)
